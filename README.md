@@ -22,6 +22,22 @@ Luminary is free, open source, and not affiliated with the Jellyfin project.
 - Optional glass window background (View → Glass Background, ⌃⌘G)
 - Every shortcut can be rebound in Settings
 
+## What it direct plays
+
+Luminary plays the original file whenever it can, so the server doesn't have to transcode. mpv (with FFmpeg)
+handles almost any format, and Luminary tells Jellyfin so.
+
+| | Direct play |
+|---|---|
+| **Containers** | MKV, MP4, M4V, MOV, WebM, AVI, TS / M2TS / MTS, WMV / ASF, FLV, 3GP, OGV / OGG, MPG / MPEG, VOB, DivX / Xvid |
+| **Video codecs** | Anything FFmpeg decodes: H.264, HEVC / H.265 (8 and 10-bit), AV1, VP9, VP8, MPEG-2, MPEG-4, VC-1 and more. Hardware decoding through VideoToolbox where the Mac supports it (AV1 needs an M3 or newer, otherwise it's decoded in software). |
+| **HDR** | HDR10 and HLG |
+| **Audio** | Anything FFmpeg decodes, including AAC, AC3, E-AC3, TrueHD, DTS / DTS-HD, FLAC, Opus. Decoded on the Mac (no passthrough to a receiver). |
+| **Subtitles** | Text: ASS / SSA (full styling and positioning), SRT, WebVTT, TTML, MOV text, SMI. Image: PGS, VobSub / DVD, DVB. Embedded or as separate files. |
+
+The server only transcodes when you pick a lower quality yourself. In that case audio and text subtitles can
+still be switched, and image subtitles are burned in.
+
 ## Requirements
 
 - A Mac with Apple Silicon (M1 or newer)
