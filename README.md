@@ -1,0 +1,113 @@
+# Luminary
+
+A native macOS app for watching your [Jellyfin](https://jellyfin.org) library. It's built to feel smooth: 120 Hz
+scrolling, instant window resizing, and mpv playback with hardware decoding, so almost every file plays directly
+without the server transcoding it.
+
+Luminary is free, open source, and not affiliated with the Jellyfin project.
+
+> **Built with AI.** I designed and tested Luminary, and the code was written by Claude (Anthropic's AI) under my
+> direction. I use it every day on my own server. Bug reports are very welcome.
+
+## Features
+
+- Home with Continue Watching, Next Up and Recently Added shelves, plus your libraries, favourites and search
+- Filter libraries by genre, tag and year
+- Movie and series pages with cast, ratings, episode thumbnails, trailers and IMDb / TMDB links
+- Right-click menus: mark watched, favourite, remove from Continue Watching, go to series or season
+- mpv player: direct play first, with transcoding at the quality you pick when needed
+- Audio and subtitle tracks with Jellyfin's labels and defaults, subtitle timing and size, ASS styling
+- Skip Intro / Credits (Jellyfin 10.10+ with a segment plugin such as Intro Skipper), chapters, Up Next autoplay
+- Media keys and AirPods controls, playback stats panel, trackpad scrubbing
+- Optional glass window background (View → Glass Background, ⌃⌘G)
+- Every shortcut can be rebound in Settings
+
+## Requirements
+
+- A Mac with Apple Silicon (M1 or newer)
+- macOS 14 Sonoma or newer (developed on macOS 26)
+- A Jellyfin server, version **10.9 or newer**
+
+## Install
+
+1. Download `Luminary-x.y.z.zip` from the [Releases](../../releases) page and unzip it.
+2. Drag **Luminary** into your **Applications** folder.
+3. Open it. macOS will say it can't verify the developer, because the app isn't signed with a paid Apple
+   developer account. To allow it:
+   - Open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to the Luminary
+     message. Then confirm.
+   - Or, in Terminal: `xattr -dr com.apple.quarantine /Applications/Luminary.app`
+
+   You only need to do this once per version.
+4. Sign in with your server address: a LAN address like `192.168.1.10` (Luminary tries `http://…:8096` first), a
+   hostname (`https://` first), or a full URL with a base path such as `https://media.example.com/jellyfin`.
+
+macOS may ask whether Luminary can use your login Keychain, where it keeps your sign-in. Choose **Always Allow**.
+
+## Shortcuts
+
+All shortcuts are listed, and can be rebound, in **Luminary → Settings… (⌘,) → Shortcuts**. Defaults:
+
+| Player | | Library | |
+|---|---|---|---|
+| Space · click | Play / pause | ⌘[ · mouse back button | Back |
+| ← / → (⇧ for 30 s) | Seek 5 s | ⌘1 / ⌘2 / ⌘3 | Home / Next Up / Favorites |
+| Return | Skip intro / credits, or play next | ⌘4 – ⌘9 | Libraries in sidebar order |
+| Page Up / Page Down | Previous / next chapter | ⌘F | Search |
+| P / N | Previous / next episode | ⌘R | Refresh |
+| ↑ / ↓ · M | Volume · mute | ⌃⌘S | Show / hide sidebar |
+| A / S | Next audio / subtitle track | ⌃⌘G | Glass background |
+| Z / X | Subtitles earlier / later | | |
+| [ / ] / \\ | Slower / faster / normal speed | | |
+| F · double-click | Full screen | | |
+| Esc | Exit full screen, then back to library | | |
+| I | Playback stats | | |
+| 0 – 9 | Jump to 0–90 % | | |
+| ⌘Z | Jump back to where you were (after a big jump) | | |
+| Two-finger swipe | Scrub | | |
+
+**Quality:** ⚙︎ → Quality. "Original" direct-plays the file. Picking a lower bitrate makes the server transcode
+(HLS fMP4, HEVC or H.264). Audio and text subtitles can still be switched while transcoding. Image subtitles (PGS)
+are burned in.
+
+## Build from source
+
+The Xcode Command Line Tools are enough (`xcode-select --install`).
+
+```bash
+git clone <this repo>
+cd Luminary
+./scripts/make-app.sh             # release build, installs ~/Applications/Luminary.app
+./scripts/make-app.sh --package   # dist/Luminary-<version>.zip for a release
+./scripts/dev.sh                  # optimised build that runs straight from the terminal
+```
+
+`swift test` runs the JellyfinKit unit tests (no server needed). It needs the full Xcode, for XCTest.
+
+## How it's built
+
+```
+Sources/
+├── JellyfinKit/      UI-free Jellyfin API client: sign-in, libraries, items, playback negotiation, images
+└── Luminary/
+    ├── Player/       libmpv (MPVKit) player, overlay controls, reporting, Now Playing
+    ├── Views/        library window, home, grids, detail pages, filters, login
+    ├── Session/      sign-in state and navigation
+    ├── Images/       cached, downsampled image pipeline
+    ├── Hotkeys/      rebindable shortcuts
+    └── Settings/
+Tests/JellyfinKitTests/
+```
+
+- **Rendering:** mpv's `gpu-next` → Vulkan → MoltenVK → Metal, into a `CAMetalLayer`. **Decoding:** VideoToolbox.
+  **Subtitles:** libass.
+- **Direct play first:** Luminary sends Jellyfin a device profile and plays the original file whenever it can.
+- **Reporting:** playback start, progress every 10 s and stop are reported to the server, so resume points and
+  watched state stay in sync with your other Jellyfin apps.
+- **Sign-in:** the token is sent in the `Authorization` header and stored in the Keychain.
+
+## Licence
+
+Luminary is licensed under the [GNU General Public License v3](LICENSE). It uses
+[MPVKit](https://github.com/mpvkit/MPVKit), which bundles [mpv](https://mpv.io), [FFmpeg](https://ffmpeg.org),
+libass, libplacebo and MoltenVK under their own licences. Its GPL build is used, which is why Luminary is GPL too.

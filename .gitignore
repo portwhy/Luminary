@@ -1,0 +1,10 @@
+.DS_Store
+/.build
+/.swiftpm
+/Packages
+xcuserdata/
+DerivedData/
+*.xcodeproj/project.xcworkspace/xcuserdata
+/dist
+# Personal notes for Claude (server address, working notes). Not part of the public project.
+CLAUDE.md
