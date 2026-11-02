@@ -7,7 +7,7 @@ without the server transcoding it.
 Luminary is free, open source, and not affiliated with the Jellyfin project.
 
 > **Built with AI.** I designed and tested Luminary, and the code was written by Claude (Anthropic's AI) under my
-> direction. I use it every day on my own server. Bug reports are very welcome.
+> direction. I use it every day on my own devices. Bug reports are very welcome.
 
 ## Features
 
