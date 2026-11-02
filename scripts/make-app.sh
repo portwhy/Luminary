@@ -3,7 +3,7 @@
 # into ~/Applications so it shows up in Spotlight/Launchpad.
 #   ./scripts/make-app.sh            build + install
 #   ./scripts/make-app.sh --no-install
-#   ./scripts/make-app.sh --package     ad-hoc signed dist/Luminary-<version>.zip for a GitHub release
+#   ./scripts/make-app.sh --package     ad-hoc signed dist/Luminary-<version>.dmg for a GitHub release
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -17,6 +17,8 @@ BIN=".build/arm64-apple-macosx/release/Luminary"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Luminary"
+# Drop debug symbols: they hold the build machine's folder paths (privacy) and add ~7 MB.
+strip -S -x "$APP/Contents/MacOS/Luminary"
 
 # App icon: assets/icon-1024.png (drawn by scripts/make-icon.swift) -> AppIcon.icns
 ICONSET="$(mktemp -d)/AppIcon.iconset"
@@ -60,11 +62,15 @@ codesign --force --sign "$IDENTITY" --identifier "$BUNDLE_ID" "$APP"
 codesign --verify --strict "$APP" && echo "signed with: $IDENTITY"
 
 if [ "${1:-}" = "--package" ]; then
-  ZIP="dist/Luminary-$VERSION.zip"
-  rm -f "$ZIP"
-  ditto -c -k --keepParent "$APP" "$ZIP"
-  rm -rf "$APP"
-  echo "packaged: $ZIP"
+  # Disk image with the app next to an Applications shortcut, so installing is one drag.
+  DMG="dist/Luminary-$VERSION.dmg"
+  STAGE="$(mktemp -d)"
+  cp -R "$APP" "$STAGE/"
+  ln -s /Applications "$STAGE/Applications"
+  rm -f "$DMG"
+  hdiutil create -volname "Luminary" -srcfolder "$STAGE" -fs HFS+ -format UDZO -imagekey zlib-level=9 -quiet "$DMG"
+  rm -rf "$STAGE" "$APP"
+  echo "packaged: $DMG"
 elif [ "${1:-}" != "--no-install" ]; then
   mkdir -p "$HOME/Applications"
   rm -rf "$HOME/Applications/Luminary.app"

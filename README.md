@@ -46,8 +46,8 @@ still be switched, and image subtitles are burned in.
 
 ## Install
 
-1. Download `Luminary-x.y.z.zip` from the [Releases](../../releases) page and unzip it.
-2. Drag **Luminary** into your **Applications** folder.
+1. Download `Luminary-x.y.z.dmg` from the [Releases](../../releases) page and open it.
+2. Drag **Luminary** onto the **Applications** shortcut next to it.
 3. Open it. macOS will say it can't verify the developer, because the app isn't signed with a paid Apple
    developer account. To allow it:
    - Open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to the Luminary
@@ -94,7 +94,7 @@ The Xcode Command Line Tools are enough (`xcode-select --install`).
 git clone <this repo>
 cd Luminary
 ./scripts/make-app.sh             # release build, installs ~/Applications/Luminary.app
-./scripts/make-app.sh --package   # dist/Luminary-<version>.zip for a release
+./scripts/make-app.sh --package   # dist/Luminary-<version>.dmg for a release
 ./scripts/dev.sh                  # optimized build that runs straight from the terminal
 ```
 
