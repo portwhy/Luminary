@@ -76,7 +76,7 @@ final class MPVPlayer {
             // libplacebo compiles shaders on first use. Cache them so later starts skip that work.
             ("gpu-shader-cache-dir", Self.cacheDirectory("shaders")),
             ("icc-cache-dir", Self.cacheDirectory("icc")),
-            // Behaviour: we draw our own UI and handle input ourselves.
+            // Behavior: we draw our own UI and handle input ourselves.
             ("keep-open", "yes"),
             ("idle", "yes"),
             ("input-default-bindings", "no"),
@@ -101,7 +101,7 @@ final class MPVPlayer {
             }
         }
         guard let core else {
-            errorMessage = "Couldn’t start the video engine (libmpv failed to initialise). See the terminal for details."
+            errorMessage = "Couldn’t start the video engine (libmpv failed to initialize). See the terminal for details."
             return
         }
         print("[Luminary] player attached to Metal layer")

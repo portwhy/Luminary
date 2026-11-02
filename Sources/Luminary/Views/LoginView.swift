@@ -158,7 +158,7 @@ struct LuminaryLogo: View {
     }
 }
 
-/// Rounded play triangle whose centroid sits on the centre of its square (the way it reads as centred).
+/// Rounded play triangle whose centroid sits on the center of its square (the way it reads as centered).
 private struct PlayTriangle: Shape {
     func path(in rect: CGRect) -> Path {
         func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * rect.width, y: rect.minY + y * rect.height) }

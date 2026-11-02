@@ -193,7 +193,7 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
     }
 }
 
-/// User-customisable shortcuts. Only differences from the defaults are stored (UserDefaults), so new
+/// User-customizable shortcuts. Only differences from the defaults are stored (UserDefaults), so new
 /// default shortcuts in future versions show up automatically.
 @MainActor
 @Observable

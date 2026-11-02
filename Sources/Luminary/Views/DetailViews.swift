@@ -63,7 +63,7 @@ struct DetailHeader<Actions: View>: View {
                             if let backdropURL {
                                 Artwork(url: backdropURL, aspectRatio: nil, maxPixelSize: 2400)
                             }
-                            // Left edge into the app's own colour, so under the glass it matches the window.
+                            // Left edge into the app's own color, so under the glass it matches the window.
                             LinearGradient(
                                 stops: [
                                     .init(color: AppTheme.background, location: 0.0),
@@ -81,7 +81,7 @@ struct DetailHeader<Actions: View>: View {
                             )
                             .frame(height: 140)
                             .frame(maxHeight: .infinity, alignment: .top)
-                            // Bottom: dark enough behind the title, then out to the app colour.
+                            // Bottom: dark enough behind the title, then out to the app color.
                             LinearGradient(
                                 stops: [
                                     .init(color: .clear, location: 0.0),
@@ -398,7 +398,7 @@ struct MovieDetailView: View {
     }
 }
 
-/// Watched ✓ and Favourite ♥ toggles for detail headers.
+/// Watched ✓ and Favorite ♥ toggles for detail headers.
 struct WatchStateButtons: View {
     let item: BaseItemDto
     @Environment(SessionManager.self) private var session

@@ -120,7 +120,7 @@ public extension JellyfinClient {
     }
 }
 
-// MARK: - Episodes, played & favourite state
+// MARK: - Episodes, played & favorite state
 
 public extension JellyfinClient {
     /// Previous, current and next episode around `episodeId`.

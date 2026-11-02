@@ -2,7 +2,7 @@
 
 The Mac app (repo root, Swift) is the reference: same name, same look and feel, same features. Its interface
 code (SwiftUI/AppKit) can't run on Linux, so this is a separate native app in this folder. Read the Mac sources
-for behaviour and Jellyfin details; don't port them line by line.
+for behavior and Jellyfin details; don't port them line by line.
 
 ## The owner's priorities
 - **Smooth and reliable, always.** Never trade that for features or looks. Never block the UI thread: network,
@@ -19,7 +19,7 @@ for behaviour and Jellyfin details; don't port them line by line.
 - Sign-in token stored in the desktop keyring through the Secret Service (libsecret / `oo7`), not a plain file.
 - **Distribution: a Flatpak** (manifest in this folder, later published on Flathub). That covers Pop!_OS, Ubuntu,
   Fedora, Arch, Mint and Steam Deck in one package. App ID, something like `io.github.portwhy.Luminary`.
-- Licence: GPLv3, same as the repo (mpv/FFmpeg).
+- License: GPLv3, same as the repo (mpv/FFmpeg).
 
 ## First session checklist (ask the owner)
 1. Pop!_OS version and desktop (24.04 with COSMIC, or 22.04 with GNOME)?
@@ -35,7 +35,7 @@ Then install: rustup, the GTK4 + libadwaita dev packages, libmpv dev package, fl
    Recently Added per library), library grids, search. An image cache (memory + disk, downsampled off the UI
    thread, shared in-flight requests) is part of this milestone, not later.
 3. **Detail pages:** movie and series pages (backdrop fading into the background, overview, cast, ratings,
-   seasons, episodes with thumbnails), right-click actions (watched, favourite, remove from Continue Watching).
+   seasons, episodes with thumbnails), right-click actions (watched, favorite, remove from Continue Watching).
 4. **Player:** direct play first, transcode when needed, audio/subtitle tracks with Jellyfin labels and defaults,
    seek bar, resume, progress reporting, Skip Intro, Up Next, the keyboard shortcuts from the Mac README.
 5. **Release:** library filters, settings, polish, then the Flatpak and a GitHub release.
@@ -58,7 +58,7 @@ Then install: rustup, the GTK4 + libadwaita dev packages, libmpv dev package, fl
   true. Subtitles while transcoding: text → external file (keeps ASS styling), image (PGS) → burned in.
 - Map Jellyfin's default audio/subtitle stream indexes onto mpv track ids by container stream index.
 
-## mpv behaviour to match (see `../Sources/Luminary/Player/`)
+## mpv behavior to match (see `../Sources/Luminary/Player/`)
 - Never call libmpv from the UI thread except the render callback; commands go through a queue, events on their
   own thread, results posted back to the UI.
 - `sub-ass-override=no`, embedded fonts on, shader cache directory set, keep-alive for HTTP streams.

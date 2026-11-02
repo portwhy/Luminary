@@ -11,10 +11,10 @@ Luminary is free, open source, and not affiliated with the Jellyfin project.
 
 ## Features
 
-- Home with Continue Watching, Next Up and Recently Added shelves, plus your libraries, favourites and search
+- Home with Continue Watching, Next Up and Recently Added shelves, plus your libraries, favorites and search
 - Filter libraries by genre, tag and year
 - Movie and series pages with cast, ratings, episode thumbnails, trailers and IMDb / TMDB links
-- Right-click menus: mark watched, favourite, remove from Continue Watching, go to series or season
+- Right-click menus: mark watched, favorite, remove from Continue Watching, go to series or season
 - mpv player: direct play first, with transcoding at the quality you pick when needed
 - Audio and subtitle tracks with Jellyfin's labels and defaults, subtitle timing and size, ASS styling
 - Skip Intro / Credits (Jellyfin 10.10+ with a segment plugin such as Intro Skipper), chapters, Up Next autoplay
@@ -95,7 +95,7 @@ git clone <this repo>
 cd Luminary
 ./scripts/make-app.sh             # release build, installs ~/Applications/Luminary.app
 ./scripts/make-app.sh --package   # dist/Luminary-<version>.zip for a release
-./scripts/dev.sh                  # optimised build that runs straight from the terminal
+./scripts/dev.sh                  # optimized build that runs straight from the terminal
 ```
 
 `swift test` runs the JellyfinKit unit tests (no server needed). It needs the full Xcode, for XCTest.
@@ -122,8 +122,8 @@ Tests/JellyfinKitTests/
   watched state stay in sync with your other Jellyfin apps.
 - **Sign-in:** the token is sent in the `Authorization` header and stored in the Keychain.
 
-## Licence
+## License
 
 Luminary is licensed under the [GNU General Public License v3](LICENSE). It uses
 [MPVKit](https://github.com/mpvkit/MPVKit), which bundles [mpv](https://mpv.io), [FFmpeg](https://ffmpeg.org),
-libass, libplacebo and MoltenVK under their own licences. Its GPL build is used, which is why Luminary is GPL too.
+libass, libplacebo and MoltenVK under their own licenses. Its GPL build is used, which is why Luminary is GPL too.

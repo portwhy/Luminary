@@ -2,7 +2,7 @@ import AppKit
 import JellyfinKit
 import SwiftUI
 
-/// The app's one background colour. Pages fade artwork into it, so it has to be the colour the window really
+/// The app's one background color. Pages fade artwork into it, so it has to be the color the window really
 /// shows (the system "window background" gets tinted by the wallpaper and wouldn't match). With the glass
 /// option on, it becomes a light tint over a see-through window instead of a solid fill.
 @MainActor
@@ -366,7 +366,7 @@ struct SettledGrid<Content: View>: View {
     }
 }
 
-/// Sidebar row styled like the macOS sidebar: monochrome icon, grey pill when selected.
+/// Sidebar row styled like the macOS sidebar: monochrome icon, gray pill when selected.
 struct SidebarRow: View {
     let title: String
     let systemImage: String
@@ -468,7 +468,7 @@ struct ChromeButton: View {
         Button(action: action) {
             Image(systemName: systemImage)
                 .font(.system(size: 13, weight: .semibold))
-                .frame(width: Self.size, height: Self.size) // icon centred in the full circle
+                .frame(width: Self.size, height: Self.size) // icon centered in the full circle
                 .background(.regularMaterial, in: Circle())
                 .overlay(Circle().fill(Color.primary.opacity(isHovering ? 0.08 : 0)))
                 .overlay(Circle().strokeBorder(Color.primary.opacity(0.08)))
@@ -504,7 +504,7 @@ struct WindowChromeReader: NSViewRepresentable {
     func updateNSView(_ nsView: ReaderView, context: Context) { nsView.applyGlass(glass) }
 
     final class ReaderView: NSView {
-        /// Distance from the window's top edge to the centre of the traffic lights and the button row. 1 pt more than
+        /// Distance from the window's top edge to the center of the traffic lights and the button row. 1 pt more than
         /// the 8 pt panel margins, because the window's own outline takes some of the top gap.
         static let rowCenterTarget: CGFloat = 24
         /// Gap from the window's left edge to the red light. Equal to the gap above the lights
@@ -618,7 +618,7 @@ struct WindowChromeReader: NSViewRepresentable {
             }
         }
 
-        /// Puts each traffic light's centre exactly `rowCenterTarget` from the top, and publishes where the
+        /// Puts each traffic light's center exactly `rowCenterTarget` from the top, and publishes where the
         /// row should go. Idempotent and re-entrancy safe: moving one light can make AppKit move the others,
         /// so it repeats until all three agree (bounded).
         private func pin() {

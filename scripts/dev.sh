@@ -27,7 +27,7 @@ CNF
   security import "$tmp/c.p12" -k ~/Library/Keychains/login.keychain-db -P luminary -T /usr/bin/codesign
 fi
 
-# Release (optimised) build: SwiftUI in a debug build is several times slower and drops to ~60 fps on the
+# Release (optimized) build: SwiftUI in a debug build is several times slower and drops to ~60 fps on the
 # poster grid; release holds the display's full 120 Hz. LUMINARY_DEV_STORE keeps the file-based session
 # (no Keychain prompts) that debug builds use.
 swift build -c release -Xswiftc -DLUMINARY_DEV_STORE

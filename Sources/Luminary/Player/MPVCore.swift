@@ -132,7 +132,7 @@ final class MPVCore: @unchecked Sendable {
         thread.name = "luminary.mpv.events"
         thread.qualityOfService = .userInteractive
         thread.start()
-        print("[Luminary] mpv initialised")
+        print("[Luminary] mpv initialized")
     }
 
     /// Ask mpv to shut down after any queued commands. Don't use this core afterwards.

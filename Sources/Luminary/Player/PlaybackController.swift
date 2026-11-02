@@ -10,7 +10,7 @@ struct PlaybackRequest: Codable, Hashable {
 }
 
 extension Notification.Name {
-    /// Posted when watch state may have changed (playback stopped, marked watched, favourited).
+    /// Posted when watch state may have changed (playback stopped, marked watched, favorited).
     static let luminaryLibraryChanged = Notification.Name("app.luminary.libraryChanged")
 }
 
@@ -155,7 +155,7 @@ private enum SubtitleDelivery {
 
 /// One playback session: negotiates direct play vs transcode with the server, loads mpv, maps the
 /// user's audio/subtitle choices (Jellyfin stream indexes) onto mpv tracks or new transcodes, reports
-/// progress, handles next/previous episode, and owns overlay and input behaviour.
+/// progress, handles next/previous episode, and owns overlay and input behavior.
 @MainActor
 @Observable
 final class PlaybackController {
@@ -400,7 +400,7 @@ final class PlaybackController {
     private func fileDidLoad() {
         mark("file opened by mpv")
         if nowPlaying == nil { nowPlaying = NowPlayingBridge(controller: self) }
-        nowPlaying?.activate() // AirPods / media keys / Control Centre control this player
+        nowPlaying?.activate() // AirPods / media keys / Control Center control this player
         applyAudioSelection()
         applySubtitleSelection()
         player.setSpeed(player.speed)

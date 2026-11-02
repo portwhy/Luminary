@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds a real, double-clickable Luminary.app (optimised release build) into dist/ and installs a copy
+# Builds a real, double-clickable Luminary.app (optimized release build) into dist/ and installs a copy
 # into ~/Applications so it shows up in Spotlight/Launchpad.
 #   ./scripts/make-app.sh            build + install
 #   ./scripts/make-app.sh --no-install

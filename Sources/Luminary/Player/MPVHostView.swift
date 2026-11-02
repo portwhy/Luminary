@@ -99,7 +99,7 @@ final class MPVHostView: NSView {
     }
 
     /// mpv renders into a drawable of one fixed size (16:9, as many pixels as the biggest screen is wide, capped at
-    /// 4K) for the whole life of the window. Core Animation scales that layer to fit the view, centred. libmpv is
+    /// 4K) for the whole life of the window. Core Animation scales that layer to fit the view, centered. libmpv is
     /// never told about window resizing (we own the Metal layer, it doesn't), and when it guessed wrong the
     /// picture stayed stretched or in a corner for seconds; with a fixed size there is nothing for it to miss, and
     /// resizing and full screen are just a layer transform, so they are instant.

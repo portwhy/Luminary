@@ -4,7 +4,7 @@ import AppKit
 let size: CGFloat = 1024
 let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
     let ctx = NSGraphicsContext.current!.cgContext
-    // macOS icon template: 824 pt rounded square centred in the canvas, with a soft drop shadow.
+    // macOS icon template: 824 pt rounded square centered in the canvas, with a soft drop shadow.
     let body = CGRect(x: 100, y: 100, width: 824, height: 824)
     let path = CGPath(roundedRect: body, cornerWidth: 186, cornerHeight: 186, transform: nil)
 
@@ -36,9 +36,9 @@ let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _
     ctx.drawLinearGradient(sheen, start: CGPoint(x: 512, y: 924), end: CGPoint(x: 512, y: 640), options: [])
     ctx.restoreGState()
 
-    // Play triangle with rounded corners; its centroid sits on the icon's centre, which is what reads as centred.
+    // Play triangle with rounded corners; its centroid sits on the icon's center, which is what reads as centered.
     let tri = CGMutablePath()
-    let a = CGPoint(x: 415, y: 344), b = CGPoint(x: 415, y: 680), c = CGPoint(x: 705, y: 512) // centroid = canvas centre (512, 512)
+    let a = CGPoint(x: 415, y: 344), b = CGPoint(x: 415, y: 680), c = CGPoint(x: 705, y: 512) // centroid = canvas center (512, 512)
     tri.move(to: CGPoint(x: (a.x + c.x) / 2, y: (a.y + c.y) / 2))
     tri.addArc(tangent1End: a, tangent2End: b, radius: 46)
     tri.addArc(tangent1End: b, tangent2End: c, radius: 46)

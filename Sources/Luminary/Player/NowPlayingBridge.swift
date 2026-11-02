@@ -2,7 +2,7 @@ import AppKit
 import MediaPlayer
 
 /// Registers the player with macOS as the "Now Playing" app, so the AirPods stem press, the keyboard's media
-/// keys, the Touch Bar / Control Centre and Bluetooth headsets all control Luminary. Without this, macOS has
+/// keys, the Touch Bar / Control Center and Bluetooth headsets all control Luminary. Without this, macOS has
 /// no app to send "play/pause" to: the headset reconfigures its audio route (the brief dropout) and nothing
 /// pauses.
 @MainActor
