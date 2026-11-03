@@ -6,6 +6,22 @@
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
     <item>
+      <title>Luminary 0.2.2</title>
+      <pubDate>Tue, 03 Nov 2026 01:26:13 GMT</pubDate>
+      <sparkle:version>4</sparkle:version>
+      <sparkle:shortVersionString>0.2.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.2.2</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. Updates get quieter.
+
+ What's new
+- New versions now download in the background. When one is ready, a Restart to Update button appears at the top right of the window; ignore it and the update installs the next time you quit. Prefer to be asked first? Turn off automatic downloads in Settings → General.
+- The version number now shows in the top right of the window
+
+On 0.2.1, use Luminary → Check for Updates… one last time. On 0.1.0, download the DMG below and install it like before.]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.2.2/Luminary-0.2.2.dmg" sparkle:edSignature="wlaZ8lw4bPY5qsmq4QJnbFn04zarnPgfVN004/Wpsq1MjXmG7Prjy5wtBLhuKqX0cckhvMapvDU0zeDNrGveDA==" length="18111364" type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Luminary 0.2.1</title>
       <pubDate>Tue, 03 Nov 2026 01:13:31 GMT</pubDate>
       <sparkle:version>3</sparkle:version>
