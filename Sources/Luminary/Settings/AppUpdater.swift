@@ -54,6 +54,11 @@ final class AppUpdater {
         installNow?()
     }
 
+    /// Luminary is quitting with a downloaded update waiting: Sparkle installs it now, so hand the sign-in over first.
+    func applicationWillTerminate() {
+        if readyVersion != nil { SessionManager.handOffForUpdate() }
+    }
+
     fileprivate func updateIsReady(version: String, install: @escaping () -> Void) {
         installNow = install
         readyVersion = version
@@ -71,6 +76,16 @@ private final class UpdaterDelegate: NSObject, SPUUpdaterDelegate {
             AppUpdater.shared.updateIsReady(version: version, install: immediateInstallHandler)
         }
         return true
+    }
+
+    // Right before installing (both Restart to Update and installing on quit) and before relaunching: hand the sign-in
+    // to the new version so macOS doesn't ask for the Keychain password after the update.
+    func updater(_ updater: SPUUpdater, willInstallUpdate item: SUAppcastItem) {
+        SessionManager.handOffForUpdate()
+    }
+
+    func updaterWillRelaunchApplication(_ updater: SPUUpdater) {
+        SessionManager.handOffForUpdate()
     }
 }
 

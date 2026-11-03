@@ -20,7 +20,20 @@ final class SessionManager {
 
     private(set) var state: State = .restoring
 
-    private let store = SessionStore()
+    private let store = SessionManager.makeStore()
+
+    /// The real app keeps its session under "app.luminary.session"; a copy with another bundle id (a test build) gets
+    /// its own Keychain item, so it can never read or hand off the real app's session.
+    nonisolated private static func makeStore() -> SessionStore {
+        let bundleID = Bundle.main.bundleIdentifier
+        let service = bundleID == nil || bundleID == "app.luminary.Luminary" ? "app.luminary.session" : "app.luminary.session.\(bundleID!)"
+        return SessionStore(keychain: KeychainStore(service: service))
+    }
+
+    /// Right before an update installs: pass the session to the new version (see `SessionStore.handOffForUpdate`).
+    nonisolated static func handOffForUpdate() {
+        makeStore().handOffForUpdate()
+    }
     private let identity = ClientIdentity(version: AppVersion.current)
     private static let lastServerKey = "app.luminary.lastServer"
 

@@ -62,6 +62,7 @@ still be switched, and image subtitles are burned in.
    a base path such as `https://media.example.com/jellyfin`. To use plain http away from home, type `http://` yourself.
 
 macOS may ask whether Luminary can use your login Keychain, where it keeps your sign-in. Choose **Always Allow**.
+In-app updates hand the sign-in over to the new version, so they don't ask again.
 
 **Updates:** from 0.2.0 on, Luminary updates itself. It checks about once a day (or use **Luminary → Check for
 Updates…**) and downloads new versions in the background; a **Restart to Update** button then appears at the top
