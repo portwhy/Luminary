@@ -6,6 +6,21 @@
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
     <item>
+      <title>Luminary 0.2.1</title>
+      <pubDate>Tue, 03 Nov 2026 01:13:31 GMT</pubDate>
+      <sparkle:version>3</sparkle:version>
+      <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.2.1</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. A small update to test in-app updates.
+
+If you're on 0.2.0, you don't need to download anything: Luminary offers this update itself (Luminary → Check for Updates…). On 0.1.0, download the DMG below and install it like before.
+
+ What's new
+- The Server box on the sign-in screen now reads "IP address or URL"]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.2.1/Luminary-0.2.1.dmg" sparkle:edSignature="7nJBLzutrMGFc70GF6XJrR4wJeMCMWYHJEH0vWf5AiTotSFAG8LiqLU4ZcW0rYZ6Hd1/zvawn61JA7OCW7f+BA==" length="18099962" type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Luminary 0.2.0</title>
       <pubDate>Tue, 03 Nov 2026 01:08:33 GMT</pubDate>
       <sparkle:version>2</sparkle:version>
