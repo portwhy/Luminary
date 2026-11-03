@@ -5,5 +5,41 @@
     <title>Luminary</title>
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
+    <item>
+      <title>Luminary 0.2.0</title>
+      <pubDate>Tue, 03 Nov 2026 01:08:33 GMT</pubDate>
+      <sparkle:version>2</sparkle:version>
+      <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.2.0</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. Lots of new settings to make Luminary work the way you like, and in-app updates, so this is the last version you'll need to download by hand.
+
+Requirements: Apple Silicon Mac (M1 or newer), macOS 14 or newer, Jellyfin 10.9 or newer.
+
+ Install
+1. Download Luminary-0.2.0.dmg below and open it.
+2. Drag Luminary onto the Applications shortcut next to it (replace the old copy if asked).
+3. Open it. macOS will say it can't verify the developer, because the app isn't signed with a paid Apple developer account. Go to System Settings → Privacy & Security, click Open Anyway next to the Luminary message, and confirm.
+
+Coming from 0.1.0: macOS may ask for your login password once so Luminary can read your saved sign-in. Click Always Allow.
+
+ What's new
+- In-app updates: Luminary checks for new versions itself (Luminary → Check for Updates…, or automatically). Updates install only if they're signed by this project.
+- Settings (⌘,): General, Playback, Audio/Subs, Video, Shortcuts and About
+- Interface size from 85 % to 150 % (⌘= / ⌘- / ⌘0)
+- Separate streaming quality at home and away from home
+- Skip intros and credits automatically, show a Skip button, or neither
+- Turn Up Next autoplay off, and choose when it appears
+- Choose skip lengths for the arrow keys and the on-screen buttons
+- Resume where you left off or always start from the beginning
+- Default playback speed, how fast the controls hide, and a volume boost limit
+- Preferred audio and subtitle languages, subtitle size, position and styling
+- HDR or always SDR, smoother color banding, hardware decoding switch
+- Choose which page Luminary opens to, hide watched items in libraries, and pick which Recently Added rows show on Home
+- New account menu at the bottom of the sidebar; long library names scroll on hover
+
+Built with AI help and so far tested on one setup, so please open an issue if anything breaks.]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.2.0/Luminary-0.2.0.dmg" sparkle:edSignature="fnw3QtgXju7Bh5w4L8aRM5w+hjcgGWHqexnE7wxXGWXFQA5R3klASFwR4NEBSdcTOaGMG2+X61B7c6+nU4dXAQ==" length="18100963" type="application/octet-stream"/>
+    </item>
   </channel>
 </rss>
