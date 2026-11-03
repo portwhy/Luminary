@@ -6,6 +6,19 @@
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
     <item>
+      <title>Luminary 0.2.7</title>
+      <pubDate>Tue, 03 Nov 2026 08:20:48 GMT</pubDate>
+      <sparkle:version>9</sparkle:version>
+      <sparkle:shortVersionString>0.2.7</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.2.7</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. Keeps your screen awake while you watch.
+
+ What's new
+- Fixed the screen turning off in the middle of a video. Luminary now keeps the display awake while a video is playing, and lets it sleep normally again when you pause or stop.]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.2.7/Luminary-0.2.7.dmg" sparkle:edSignature="BGFSfjramwk3Hg1zKhoy1q2QVOITInWovN7b2ZvLN8FUwGTGEGIaZUwUEjA8Q7tWirwv8L17rxSTNsbi1B9ZBQ==" length="18113589" type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Luminary 0.2.6</title>
       <pubDate>Tue, 03 Nov 2026 02:26:56 GMT</pubDate>
       <sparkle:version>8</sparkle:version>
