@@ -6,6 +6,26 @@
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
     <item>
+      <title>Luminary 0.2.3</title>
+      <pubDate>Tue, 03 Nov 2026 01:43:25 GMT</pubDate>
+      <sparkle:version>5</sparkle:version>
+      <sparkle:shortVersionString>0.2.3</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.2.3</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. Security improvements from a review of the whole app.
+
+ What's new
+- Public server addresses always connect with https, so your password is never sent unencrypted if https fails. Plain http still works on your home network, or if you type http:// yourself.
+- Hardened runtime: other programs can't inject code into Luminary to get at your sign-in.
+- Your sign-in token is only ever sent to your own server.
+- The Trailer button only opens web pages.
+- Signing out also clears cached artwork.
+- mpv's built-in add-ons (stats page, console, menus) are switched off, since Luminary has its own controls.
+
+After updating, macOS may ask for your login password once so Luminary can read your saved sign-in. Click Always Allow.]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.2.3/Luminary-0.2.3.dmg" sparkle:edSignature="+1tnAztQpufoZOKGzw2f7RICOkUsIWXrFg81IVV/I/RbqnAQKJnN+jl3+3UhcQPyYUelYuGNAABcBT7slcM7Ag==" length="18100038" type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Luminary 0.2.2</title>
       <pubDate>Tue, 03 Nov 2026 01:26:13 GMT</pubDate>
       <sparkle:version>4</sparkle:version>
