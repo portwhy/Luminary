@@ -63,8 +63,10 @@ still be switched, and image subtitles are burned in.
 macOS may ask whether Luminary can use your login Keychain, where it keeps your sign-in. Choose **Always Allow**.
 
 **Updates:** from 0.2.0 on, Luminary updates itself. It checks about once a day (or use **Luminary → Check for
-Updates…**), and you can turn on automatic installs in **Settings → General**. Updates are signed, and the app
-refuses any that aren't.
+Updates…**) and downloads new versions in the background; a **Restart to Update** button then appears at the top
+right of the window, next to the version number. Ignore it and the update installs the next time you quit. Prefer to
+be asked first? Turn off automatic downloads in **Settings → General**. Updates are signed, and the app refuses any
+that aren't.
 
 ## Shortcuts
 

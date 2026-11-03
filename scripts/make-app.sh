@@ -8,8 +8,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Bump both for every release. BUILD must always go up: Sparkle compares it to decide what's newer.
-VERSION="0.2.1"
-BUILD="3"
+VERSION="0.2.2"
+BUILD="4"
 BUNDLE_ID="app.luminary.Luminary"
 APP="dist/Luminary.app"
 
@@ -58,6 +58,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>SUFeedURL</key><string>https://raw.githubusercontent.com/portwhy/Luminary/main/appcast.xml</string>
   <key>SUPublicEDKey</key><string>F3rM2N/3uqlZ3lN8ChHFRSsBR4pPQIFKSX9oJR5UKFo=</string>
   <key>SUEnableAutomaticChecks</key><true/>
+  <!-- Download updates quietly by default; the library window then offers Restart to Update. -->
+  <key>SUAutomaticallyUpdate</key><true/>
 </dict></plist>
 PLIST
 

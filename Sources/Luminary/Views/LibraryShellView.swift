@@ -112,6 +112,9 @@ struct LibraryShellView: View {
 
             chromeButtons
                 .ignoresSafeArea(.container, edges: .top)
+
+            trailingChrome
+                .ignoresSafeArea(.container, edges: .top)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(AppTheme.background)
@@ -159,6 +162,29 @@ struct LibraryShellView: View {
             }
         }
         .animation(.easeOut(duration: 0.15), value: navigator.canGoBack)
+    }
+
+    /// Right end of the title-bar row: Restart to Update while a downloaded update is waiting, and the version.
+    private var trailingChrome: some View {
+        let updater = AppUpdater.shared
+        return HStack(spacing: 12) {
+            if let version = updater.readyVersion {
+                UpdateReadyButton(version: version) { updater.restartToUpdate() }
+                    .transition(.opacity)
+            }
+            if AppVersion.current != "dev" {
+                Text("v\(AppVersion.current)")
+                    .font(.system(size: 11))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(height: ChromeButton.size)
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { chrome.trailingControlsWidth = $0 + 16 }
+        .padding(.trailing, 16)
+        .offset(y: chrome.rowCenterY - ChromeButton.size / 2)
+        .frame(maxWidth: .infinity, alignment: .topTrailing)
+        .animation(.easeOut(duration: 0.2), value: updater.readyVersion)
     }
 
     // MARK: Sidebar
@@ -528,12 +554,42 @@ struct ChromeButton: View {
     }
 }
 
+/// Capsule in the title-bar row, shown once an update has downloaded: restarts into the new version.
+struct UpdateReadyButton: View {
+    let version: String
+    let action: () -> Void
+
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .foregroundStyle(Color.accentColor)
+                Text("Restart to Update")
+            }
+            .font(.system(size: 13, weight: .medium))
+            .padding(.horizontal, 12)
+            .frame(height: ChromeButton.size)
+            .background(.regularMaterial, in: Capsule())
+            .overlay(Capsule().fill(Color.primary.opacity(isHovering ? 0.08 : 0)))
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08)))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .help("Luminary \(version) is ready. Restarts Luminary to install it (it also installs the next time you quit).")
+        .onHover { isHovering = $0 }
+    }
+}
+
 /// Where the window's traffic lights actually are, so our buttons line up with them exactly.
 @MainActor
 @Observable
 final class WindowChromeMetrics {
     var rowCenterY: CGFloat = 18
     var trafficLightsTrailing: CGFloat = 76
+    /// Width of the controls at the right end of the row (version, Restart to Update), kept clear of double-click-to-zoom.
+    var trailingControlsWidth: CGFloat = 0
 }
 
 /// Reads the hosting NSWindow: measures the traffic lights (re-measured on resize / full screen) and lets
@@ -660,7 +716,9 @@ struct WindowChromeReader: NSViewRepresentable {
                 else { return event }
                 let fromTop = contentHeight - event.locationInWindow.y
                 let controlsRight = metrics.trafficLightsTrailing + 10 + ChromeButton.size * 2 + 220 + 8 * 4
-                guard fromTop >= 0, fromTop <= 44, event.locationInWindow.x > controlsRight else { return event }
+                let trailingControlsLeft = window.contentView.map { $0.bounds.width - metrics.trailingControlsWidth } ?? .infinity
+                guard fromTop >= 0, fromTop <= 44, event.locationInWindow.x > controlsRight,
+                      event.locationInWindow.x < trailingControlsLeft else { return event }
                 window.zoom(nil)
                 return nil
             }
