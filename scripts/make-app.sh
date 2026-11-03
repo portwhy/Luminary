@@ -8,8 +8,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Bump both for every release. BUILD must always go up: Sparkle compares it to decide what's newer.
-VERSION="0.2.0"
-BUILD="2"
+VERSION="0.2.1"
+BUILD="3"
 BUNDLE_ID="app.luminary.Luminary"
 APP="dist/Luminary.app"
 

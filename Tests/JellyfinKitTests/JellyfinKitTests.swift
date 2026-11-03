@@ -50,7 +50,7 @@ final class JellyfinKitTests: XCTestCase {
 
     func testStoredSessionRoundTrips() throws {
         let session = StoredSession(
-            serverURL: URL(string: "http://192.168.1.10:8096")!,
+            serverURL: URL(string: "http://192.0.2.10:8096")!,
             serverId: "srv", serverName: "Home",
             user: UserDto(id: "u1", name: "alex"), accessToken: "tok"
         )
@@ -78,13 +78,13 @@ final class JellyfinKitTests: XCTestCase {
     // MARK: Server URL handling
 
     func testCandidatesForBareLANAddress() throws {
-        let urls = try JellyfinClient.candidateURLs(for: " 192.168.1.10/ ").map(\.absoluteString)
-        XCTAssertEqual(urls, ["http://192.168.1.10:8096", "http://192.168.1.10", "https://192.168.1.10"])
+        let urls = try JellyfinClient.candidateURLs(for: " 192.0.2.10/ ").map(\.absoluteString)
+        XCTAssertEqual(urls, ["http://192.0.2.10:8096", "http://192.0.2.10", "https://192.0.2.10"])
     }
 
     func testCandidatesForAddressWithPort() throws {
-        let urls = try JellyfinClient.candidateURLs(for: "192.168.1.10:8096").map(\.absoluteString)
-        XCTAssertEqual(urls, ["http://192.168.1.10:8096", "https://192.168.1.10:8096"])
+        let urls = try JellyfinClient.candidateURLs(for: "192.0.2.10:8096").map(\.absoluteString)
+        XCTAssertEqual(urls, ["http://192.0.2.10:8096", "https://192.0.2.10:8096"])
     }
 
     func testCandidatesForPublicHostname() throws {
@@ -106,13 +106,13 @@ final class JellyfinKitTests: XCTestCase {
 
     func testDirectStreamURL() throws {
         let client = JellyfinClient(
-            serverURL: URL(string: "http://192.168.1.10:8096")!,
+            serverURL: URL(string: "http://192.0.2.10:8096")!,
             identity: identity,
             credentials: Credentials(accessToken: "tok", userId: "u1")
         )
         XCTAssertEqual(
             try client.directStreamURL(itemId: "abc").absoluteString,
-            "http://192.168.1.10:8096/Videos/abc/stream?static=true&mediaSourceId=abc&deviceId=dev123&api_key=tok"
+            "http://192.0.2.10:8096/Videos/abc/stream?static=true&mediaSourceId=abc&deviceId=dev123&api_key=tok"
         )
     }
 

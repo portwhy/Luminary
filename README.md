@@ -57,7 +57,7 @@ still be switched, and image subtitles are burned in.
    - Or, in Terminal: `xattr -dr com.apple.quarantine /Applications/Luminary.app`
 
    You only need to do this once per version.
-4. Sign in with your server address: a LAN address like `192.168.1.10` (Luminary tries `http://…:8096` first), a
+4. Sign in with your server address: a LAN IP address (Luminary tries `http://…:8096` first), a
    hostname (`https://` first), or a full URL with a base path such as `https://media.example.com/jellyfin`.
 
 macOS may ask whether Luminary can use your login Keychain, where it keeps your sign-in. Choose **Always Allow**.

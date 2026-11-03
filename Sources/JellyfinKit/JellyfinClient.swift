@@ -43,7 +43,7 @@ public final class JellyfinClient: Sendable {
 
     // MARK: - Server discovery
 
-    /// Turns whatever the user typed ("192.168.1.10", "jellyfin.example.com", "https://x/jellyfin")
+    /// Turns whatever the user typed ("192.0.2.10", "jellyfin.example.com", "https://x/jellyfin")
     /// into an ordered list of URLs worth probing.
     public static func candidateURLs(for input: String) throws -> [URL] {
         var trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)

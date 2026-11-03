@@ -34,7 +34,7 @@ struct LoginView: View {
 
             VStack(spacing: 10) {
                 LoginField(focused: focus == .server) {
-                    TextField("Server", text: $server, prompt: Text("192.168.1.10:8096"))
+                    TextField("Server", text: $server, prompt: Text("IP address or URL"))
                         .focused($focus, equals: .server)
                         .onSubmit { focus = .username }
                 }

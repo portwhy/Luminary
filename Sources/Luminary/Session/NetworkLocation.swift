@@ -42,7 +42,7 @@ final class NetworkLocation {
         if home != isHome { isHome = home }
     }
 
-    /// "192.168.1" for a private IPv4 address, nil for anything else (public IPs, hostnames, IPv6).
+    /// The first three numbers of a private IPv4 address, nil for anything else (public IPs, hostnames, IPv6).
     private static func prefix(of host: String) -> String? {
         let parts = host.split(separator: ".").compactMap { Int($0) }
         guard parts.count == 4 else { return nil }
