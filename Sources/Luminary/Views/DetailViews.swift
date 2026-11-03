@@ -93,6 +93,33 @@ struct DetailHeader<Actions: View>: View {
                             )
                         }
                         .frame(width: geo.size.width, height: height)
+                        .mask {
+                            // Glass mode: the app color above is see-through, so painting it over the picture can't
+                            // hide its edges. Fade the picture itself out at the same places instead.
+                            if AppTheme.shared.glass {
+                                let left = LibraryShellView.reservedWidth + 120
+                                LinearGradient(
+                                    stops: [
+                                        .init(color: .clear, location: 0),
+                                        .init(color: .black, location: 140 / height),
+                                        .init(color: .black, location: 0.55),
+                                        .init(color: .clear, location: 1),
+                                    ],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                                .mask {
+                                    LinearGradient(
+                                        stops: [
+                                            .init(color: .clear, location: left * 0.5 / geo.size.width),
+                                            .init(color: .black, location: left / geo.size.width),
+                                        ],
+                                        startPoint: .leading, endPoint: .trailing
+                                    )
+                                }
+                            } else {
+                                Color.black
+                            }
+                        }
                         .clipped()
                         .allowsHitTesting(false)
                     }

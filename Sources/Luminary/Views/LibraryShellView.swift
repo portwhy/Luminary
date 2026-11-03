@@ -17,7 +17,7 @@ final class AppTheme {
     }
 
     private init() {
-        glass = UserDefaults.standard.bool(forKey: Self.glassKey)
+        glass = UserDefaults.standard.object(forKey: Self.glassKey) as? Bool ?? true // glass is the default look
     }
 
     var backgroundNS: NSColor { glass ? Self.solidNS.withAlphaComponent(0.30) : Self.solidNS }
