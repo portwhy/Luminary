@@ -71,6 +71,9 @@ final class MPVPlayer {
             ("demuxer-max-back-bytes", "100MiB"),
             ("demuxer-readahead-secs", "60"),
             ("network-timeout", "30"),
+            // Check the server's https certificate (mpv doesn't by default). The stream URL carries the access token,
+            // so without this a fake server on public Wi-Fi could pick it up. Uses the macOS trusted issuers.
+            ("tls-verify", "yes"),
             ("user-agent", "Luminary/\(AppVersion.current)"),
             // Keep the HTTPS connection alive across range requests (MKV index, seeks) instead of a new
             // TLS handshake each time, and reconnect transparently if the proxy drops it.
