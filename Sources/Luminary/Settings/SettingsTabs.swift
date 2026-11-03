@@ -14,6 +14,7 @@ enum Links {
 struct GeneralSettings: View {
     @Bindable private var preferences = Preferences.shared
     @Bindable private var theme = AppTheme.shared
+    @Bindable private var updater = AppUpdater.shared
     @Environment(SessionManager.self) private var session
     @Environment(AppNavigator.self) private var navigator
     private let hotkeys = HotkeyStore.shared
@@ -82,6 +83,18 @@ struct GeneralSettings: View {
                     }
                 }
                 Toggle("Hide watched items in libraries", isOn: $preferences.hideWatchedInLibraries)
+            }
+
+            if updater.isAvailable {
+                Section("Updates") {
+                    Toggle("Check for updates automatically", isOn: $updater.checksAutomatically)
+                    Toggle("Download and install updates automatically", isOn: $updater.installsAutomatically)
+                        .disabled(!updater.checksAutomatically)
+                    LabeledContent("") {
+                        Button("Check Now") { updater.checkForUpdates() }
+                            .disabled(!updater.canCheckForUpdates)
+                    }
+                }
             }
 
             Section {
@@ -278,7 +291,7 @@ struct AboutSettings: View {
     @Environment(\.openURL) private var openURL
 
     private var version: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "development build"
+        AppVersion.current == "dev" ? "development build" : AppVersion.current
     }
 
     var body: some View {

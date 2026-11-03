@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Luminary's update feed, read by the app (Sparkle). scripts/release.sh adds each release here. -->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Luminary</title>
+    <link>https://github.com/portwhy/Luminary</link>
+    <!-- releases (newest first) -->
+  </channel>
+</rss>

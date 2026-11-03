@@ -62,6 +62,10 @@ still be switched, and image subtitles are burned in.
 
 macOS may ask whether Luminary can use your login Keychain, where it keeps your sign-in. Choose **Always Allow**.
 
+**Updates:** from 0.2.0 on, Luminary updates itself. It checks about once a day (or use **Luminary → Check for
+Updates…**), and you can turn on automatic installs in **Settings → General**. Updates are signed, and the app
+refuses any that aren't.
+
 ## Shortcuts
 
 All shortcuts are listed, and can be rebound, in **Luminary → Settings… (⌘,) → Shortcuts**. Defaults:
@@ -98,6 +102,7 @@ cd Luminary
 ./scripts/make-app.sh             # release build, installs ~/Applications/Luminary.app
 ./scripts/make-app.sh --package   # dist/Luminary-<version>.dmg for a release
 ./scripts/dev.sh                  # optimized build that runs straight from the terminal
+./scripts/release.sh              # publish a release (DMG + GitHub release + update feed)
 ```
 
 `swift test` runs the JellyfinKit unit tests (no server needed). It needs the full Xcode, for XCTest.
@@ -129,3 +134,4 @@ Tests/JellyfinKitTests/
 Luminary is licensed under the [GNU General Public License v3](LICENSE). It uses
 [MPVKit](https://github.com/mpvkit/MPVKit), which bundles [mpv](https://mpv.io), [FFmpeg](https://ffmpeg.org),
 libass, libplacebo and MoltenVK under their own licenses. Its GPL build is used, which is why Luminary is GPL too.
+In-app updates use [Sparkle](https://sparkle-project.org) (MIT license).

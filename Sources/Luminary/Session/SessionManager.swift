@@ -21,7 +21,7 @@ final class SessionManager {
     private(set) var state: State = .restoring
 
     private let store = SessionStore()
-    private let identity = ClientIdentity()
+    private let identity = ClientIdentity(version: AppVersion.current)
     private static let lastServerKey = "app.luminary.lastServer"
 
     var isSignedIn: Bool {

@@ -71,7 +71,7 @@ final class MPVPlayer {
             ("demuxer-max-back-bytes", "100MiB"),
             ("demuxer-readahead-secs", "60"),
             ("network-timeout", "30"),
-            ("user-agent", "Luminary/0.1"),
+            ("user-agent", "Luminary/\(AppVersion.current)"),
             // Keep the HTTPS connection alive across range requests (MKV index, seeks) instead of a new
             // TLS handshake each time, and reconnect transparently if the proxy drops it.
             ("stream-lavf-o", "reconnect=1,reconnect_streamed=1,reconnect_delay_max=4,multiple_requests=1"),

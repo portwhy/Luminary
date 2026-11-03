@@ -8,6 +8,7 @@ struct LuminaryApp: App {
     @State private var navigator = AppNavigator()
     private let hotkeys = HotkeyStore.shared
     private let preferences = Preferences.shared
+    private let updater = AppUpdater.shared
 
     var body: some Scene {
         WindowGroup("Luminary") {
@@ -20,6 +21,12 @@ struct LuminaryApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unified)
         .commands {
+            CommandGroup(after: .appInfo) {
+                if updater.isAvailable {
+                    Button("Check for Updates…") { updater.checkForUpdates() }
+                        .disabled(!updater.canCheckForUpdates)
+                }
+            }
             CommandGroup(replacing: .sidebar) {
                 Button(navigator.isSidebarVisible ? "Hide Sidebar" : "Show Sidebar") { navigator.toggleSidebar() }
                     .keyboardShortcut("s", modifiers: [.control, .command])
@@ -90,6 +97,7 @@ struct LuminaryApp: App {
 /// opens behind other apps, has no Dock icon and won't take keyboard focus.
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        _ = AppUpdater.shared // starts the daily background update check (installed app only)
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
     }
