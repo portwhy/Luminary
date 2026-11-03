@@ -9,6 +9,21 @@ Luminary is free, open source, and not affiliated with the Jellyfin project.
 > **Built with AI.** I designed and tested Luminary, and the code was written by Claude (Anthropic's AI) under my
 > direction. I use it every day on my own devices. Bug reports are very welcome.
 
+![Home with Continue Watching, Next Up and Recently Added](assets/screenshots/home.jpg)
+
+<table>
+  <tr>
+    <td><img src="assets/screenshots/movie.jpg" alt="Movie page"></td>
+    <td><img src="assets/screenshots/series.jpg" alt="Series page"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/library.jpg" alt="Library grid"></td>
+    <td><img src="assets/screenshots/player.jpg" alt="Player"></td>
+  </tr>
+</table>
+
+![Playback stats panel showing a direct play](assets/screenshots/stats.jpg)
+
 ## Features
 
 - Home with Continue Watching, Next Up and Recently Added shelves, plus your libraries, favorites and search
