@@ -6,6 +6,26 @@
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
     <item>
+      <title>Luminary 0.3.0</title>
+      <pubDate>Tue, 03 Nov 2026 22:18:22 GMT</pubDate>
+      <sparkle:version>10</sparkle:version>
+      <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.3.0</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. Smarter skipping, remembered audio and subtitles, and a player that scales with the rest of the app.
+
+ What's new
+- Audio and subtitles are remembered per series, including "subtitles off", and survive restarting the app. Your choice carries over to the next episode.
+- Skip Credits and Play Next work together. When credits start with less than 45 seconds left, the Up Next card appears (Return to skip, Shift+Return to play next). Longer credits just offer Skip Credits.
+- The player follows the interface size (⌘= / ⌘- / ⌘0): controls, clock, pills, menus and the Up Next card all scale.
+- Buttons in the player light up when you hover them, so they're easy to find on a dimmed screen.
+- Chapter keys: [ and ] jump between chapters. Without chapters they use the intro and credits marks, and ] on the last one goes to the end.
+- Esc goes back in the library, like the Back button.
+- The Refresh shortcut now reloads Home and library pages. Intro and credits marks stay visible on the seek bar after you've watched past them.
+- Faster update checks: every 4 hours, and when you return to the app.]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.3.0/Luminary-0.3.0.dmg" sparkle:edSignature="GOoHhER/n/fbz6FapQpQxft1li4A6geFKaiXda7rBYpeO8LxR5jQjfZvzUeA/Pik06N/mexJ3hI1erugoFJuBw==" length="18138762" type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Luminary 0.2.7</title>
       <pubDate>Tue, 03 Nov 2026 08:20:48 GMT</pubDate>
       <sparkle:version>9</sparkle:version>
