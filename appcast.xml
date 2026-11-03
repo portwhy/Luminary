@@ -6,6 +6,19 @@
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
     <item>
+      <title>Luminary 0.2.5</title>
+      <pubDate>Tue, 03 Nov 2026 02:13:36 GMT</pubDate>
+      <sparkle:version>7</sparkle:version>
+      <sparkle:shortVersionString>0.2.5</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.2.5</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. One more security fix.
+
+ What's new
+- The video player now checks your server's https certificate, like the rest of the app already did. Before, a fake server on a hostile Wi-Fi network could have picked up your sign-in token from the video stream. Plain http on your home network works as before.]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.2.5/Luminary-0.2.5.dmg" sparkle:edSignature="/tdnoI/U7YtVc3bfTK3xNXcFccqI1OIqNbzJnLKGxFqwJui1RKBGIQW7LmaUD6CD2AL1SR4E3Ls+evAxoQ2PCw==" length="18108703" type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Luminary 0.2.4</title>
       <pubDate>Tue, 03 Nov 2026 02:00:15 GMT</pubDate>
       <sparkle:version>6</sparkle:version>
