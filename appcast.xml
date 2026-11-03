@@ -6,6 +6,20 @@
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
     <item>
+      <title>Luminary 0.2.6</title>
+      <pubDate>Tue, 03 Nov 2026 02:26:56 GMT</pubDate>
+      <sparkle:version>8</sparkle:version>
+      <sparkle:shortVersionString>0.2.6</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.2.6</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. Glass by default.
+
+ What's new
+- The glass look is now on by default (turn it off in the account menu or Settings → General). If you switched it off before, it stays off.
+- In glass mode, backdrops on movie and show pages now fade smoothly into the window instead of ending in a hard line.]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.2.6/Luminary-0.2.6.dmg" sparkle:edSignature="pb2bD82FyQn75YycdFN1i6uIp8KTuphXtsclVPFWgTM5U7aQXe585SjvfKNU9J/X8bHBmSQQPF6/KK4cTGMsDQ==" length="18097408" type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Luminary 0.2.5</title>
       <pubDate>Tue, 03 Nov 2026 02:13:36 GMT</pubDate>
       <sparkle:version>7</sparkle:version>
