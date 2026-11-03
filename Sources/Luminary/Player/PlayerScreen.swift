@@ -125,7 +125,7 @@ struct CornerCards: View {
                 UpNextCard(controller: controller, next: next)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
             } else if let segment = controller.activeSegment, let label = segment.skipLabel,
-                      skipGrace || controller.controlsVisible {
+                      controller.skipMode(for: segment) == .button, skipGrace || controller.controlsVisible {
                 Button {
                     controller.skipCurrentSegment()
                 } label: {
@@ -157,7 +157,8 @@ struct CornerCards: View {
         .animation(.easeOut(duration: 0.25), value: controller.showsUpNext)
         .animation(.easeOut(duration: 0.25), value: skipGrace || controller.controlsVisible)
         .task(id: controller.activeSegment?.id) {
-            guard controller.activeSegment != nil else { skipGrace = false; return }
+            guard let segment = controller.activeSegment else { skipGrace = false; return }
+            controller.segmentBegan(segment) // skips it if Settings says "Skip automatically"
             skipGrace = true
             try? await Task.sleep(for: .seconds(5))
             if !Task.isCancelled { skipGrace = false }
@@ -194,8 +195,8 @@ struct JumpBackPill: View {
                             controller.returnFromJump()
                         } label: {
                             HStack(spacing: 8) {
-                                Image(systemName: "arrow.uturn.backward")
-                                Text("Back to \(TimeFormat.string(position))")
+                                Image(systemName: position < 1 ? "backward.end.fill" : "arrow.uturn.backward")
+                                Text(position < 1 ? "Start from Beginning" : "Back to \(TimeFormat.string(position))")
                                 if let key = HotkeyStore.shared.binding(for: .undoJump)?.display {
                                     Text(key)
                                         .font(.caption.weight(.semibold))
@@ -243,7 +244,8 @@ struct UpNextCard: View {
                 .frame(width: 140)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             VStack(alignment: .leading, spacing: 4) {
-                Text(controller.secondsRemaining <= 30 ? "Next episode in \(controller.secondsRemaining)s" : "Up Next")
+                Text(Preferences.shared.autoplayNext && controller.secondsRemaining <= Preferences.shared.upNextCountdown
+                     ? "Next episode in \(controller.secondsRemaining)s" : "Up Next")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Text([next.episodeLabel, next.name].compactMap { $0 }.joined(separator: " · "))
@@ -269,6 +271,8 @@ struct PlayerOverlay: View {
     let controller: PlaybackController
 
     private var player: MPVPlayer { controller.player }
+    /// Settings → Playback (5, 10, 15 or 30: each has a matching SF Symbol).
+    private var skipSeconds: Int { Preferences.shared.skipButtonSeconds }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -337,8 +341,8 @@ struct PlayerOverlay: View {
                     Button { controller.previousChapter() } label: { Image(systemName: "chevron.left.2") }
                         .help("Previous chapter" + HotkeyStore.shared.hint(.previousChapter))
                 }
-                Button { player.seek(by: -10) } label: { Image(systemName: "gobackward.10") }
-                    .help("Back 10 seconds")
+                Button { player.seek(by: -Double(skipSeconds)) } label: { Image(systemName: "gobackward.\(skipSeconds)") }
+                    .help("Back \(skipSeconds) seconds")
 
                 Button { player.togglePause() } label: {
                     Image(systemName: player.isPaused ? "play.fill" : "pause.fill")
@@ -347,8 +351,8 @@ struct PlayerOverlay: View {
                 }
                 .help((player.isPaused ? "Play" : "Pause") + HotkeyStore.shared.hint(.playPause))
 
-                Button { player.seek(by: 10) } label: { Image(systemName: "goforward.10") }
-                    .help("Forward 10 seconds")
+                Button { player.seek(by: Double(skipSeconds)) } label: { Image(systemName: "goforward.\(skipSeconds)") }
+                    .help("Forward \(skipSeconds) seconds")
                 if controller.hasChapters {
                     Button { controller.nextChapter() } label: { Image(systemName: "chevron.right.2") }
                         .help("Next chapter" + HotkeyStore.shared.hint(.nextChapter))

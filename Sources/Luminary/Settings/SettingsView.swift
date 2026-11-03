@@ -2,12 +2,34 @@ import AppKit
 import SwiftUI
 
 struct SettingsView: View {
+    private enum Tab { case general, playback, audio, video, shortcuts, about }
+
+    /// Always opens on General (macOS would otherwise reopen the last tab you looked at).
+    @State private var tab = Tab.general
+
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
+            GeneralSettings()
+                .tabItem { Label("General", systemImage: "gearshape") }
+                .tag(Tab.general)
+            PlaybackSettings()
+                .tabItem { Label("Playback", systemImage: "play.rectangle") }
+                .tag(Tab.playback)
+            SubtitleSettings()
+                .tabItem { Label("Audio/Subs", systemImage: "captions.bubble") }
+                .tag(Tab.audio)
+            VideoSettings()
+                .tabItem { Label("Video", systemImage: "sparkles.tv") }
+                .tag(Tab.video)
             ShortcutsSettings()
                 .tabItem { Label("Shortcuts", systemImage: "keyboard") }
+                .tag(Tab.shortcuts)
+            AboutSettings()
+                .tabItem { Label("About", systemImage: "info.circle") }
+                .tag(Tab.about)
         }
-        .frame(width: 600, height: 680)
+        .onAppear { tab = .general }
+        .frame(width: 680, height: 680)
     }
 }
 

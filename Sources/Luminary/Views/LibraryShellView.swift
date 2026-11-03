@@ -43,10 +43,15 @@ struct LibraryShellView: View {
     @State private var loadError: String?
     @State private var mouseMonitor: Any?
     @State private var chrome = WindowChromeMetrics()
+    @State private var isHoveringAccount = false
+    @State private var isHoveringSettings = false
+    @Environment(\.openSettings) private var openSettings
+    @Environment(\.openURL) private var openURL
 
     private var libraries: [BaseItemDto] { navigator.libraries }
 
-    /// Floating panel width, and the space it reserves (panel + 8 pt margins).
+    /// Floating panel width, and the space it reserves (panel + 8 pt margins). Fixed: the interface size only
+    /// changes the sidebar's text and icons.
     private static let panelWidth: CGFloat = 232
     static let reservedWidth: CGFloat = panelWidth + 16
     /// Space between the button row and the sidebar panel. The same as the space above the row and as the
@@ -82,6 +87,9 @@ struct LibraryShellView: View {
                     }
                 }
             }
+            // Interface size (⌘= / ⌘-) for the pages; the sidebar applies it too, the title-bar row never does.
+            .scaledFont(.body)
+            .environment(\.interfaceScale, Preferences.shared.interfaceScale)
             .safeAreaPadding(.leading, navigator.isSidebarVisible ? Self.reservedWidth : 0)
             .offset(x: navigator.pageSlide)
             .scrollClipDisabled()
@@ -90,6 +98,8 @@ struct LibraryShellView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             sidebarPanel
+                .scaledFont(.body)
+                .environment(\.interfaceScale, Preferences.shared.interfaceScale)
                 .frame(width: Self.panelWidth)
                 .frame(maxHeight: .infinity)
                 .padding(.horizontal, 8)
@@ -111,6 +121,7 @@ struct LibraryShellView: View {
             navigator.reset()
             await loadLibraries()
         }
+        .task { await NetworkLocation.shared.update(client: session.client) } // home vs away quality
         .onAppear { installMouseBackButton() }
         .onDisappear {
             if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
@@ -162,7 +173,7 @@ struct LibraryShellView: View {
                     row(.favorites, "Favorites", "heart")
 
                     Text("Libraries")
-                        .font(.subheadline.weight(.semibold))
+                        .scaledFont(.subheadline, weight: .semibold)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 10)
                         .padding(.top, 14)
@@ -235,36 +246,71 @@ struct LibraryShellView: View {
         }
     }
 
+    /// Bottom of the sidebar, like Claude's: an account button that opens a menu (Settings, glass, report a
+    /// problem, sign out), and a gear that goes straight to Settings.
     private var accountFooter: some View {
-        HStack(spacing: 10) {
-            Button {
-                AppTheme.shared.glass.toggle()
+        let scale = Preferences.shared.interfaceScale
+        return HStack(spacing: 6) {
+            Menu {
+                Section("\(session.user.name) · \(session.serverName)") {
+                    Button("Settings…", systemImage: "gearshape") { openSettings() }
+                    Toggle(isOn: Bindable(AppTheme.shared).glass) {
+                        Label("Glass Background", systemImage: "drop")
+                    }
+                }
+                Divider()
+                Button("Report a Problem…", systemImage: "exclamationmark.bubble") { openURL(Links.issues) }
+                Button("Support Luminary…", systemImage: "heart") { openURL(Links.support) }
+                Divider()
+                Button("Sign Out", systemImage: "rectangle.portrait.and.arrow.right") {
+                    Task { await manager.signOut() }
+                }
             } label: {
-                Image(systemName: AppTheme.shared.glass ? "drop.fill" : "drop")
-                    .font(.system(size: 13))
-                    .frame(width: 24, height: 24)
-                    .background(.quaternary, in: Circle())
+                HStack(spacing: 8) {
+                    Text(session.user.name.prefix(1).uppercased())
+                        .scaledFont(.callout, weight: .semibold)
+                        .frame(width: 26 * scale, height: 26 * scale)
+                        .background(.quaternary, in: Circle())
+                    MarqueeText(text: session.user.name, isActive: isHoveringAccount)
+                        .scaledFont(.callout, weight: .medium)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .scaledFont(size: 10, weight: .semibold)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.primary.opacity(isHoveringAccount ? 0.08 : 0))
+                )
+                .contentShape(Rectangle())
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .onHover { isHoveringAccount = $0 }
+            .help("Account")
+
+            Button {
+                openSettings()
+            } label: {
+                Image(systemName: "gearshape")
+                    .scaledFont(size: 14)
+                    .foregroundStyle(isHoveringSettings ? .primary : .secondary)
+                    // Same height as the account button beside it (26 pt circle + 5 pt padding above and below).
+                    .frame(width: 36 * scale, height: 36 * scale)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.primary.opacity(isHoveringSettings ? 0.08 : 0))
+                    )
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help(AppTheme.shared.glass ? "Solid background (⌃⌘G)" : "Glass background (⌃⌘G)")
-            Image(systemName: "person.crop.circle.fill")
-                .font(.title2)
-                .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(session.user.name).font(.callout.weight(.medium))
-                Text(session.serverName).font(.caption).foregroundStyle(.secondary)
-            }
-            .lineLimit(1)
-            Spacer()
-            Button {
-                Task { await manager.signOut() }
-            } label: {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
-            }
-            .buttonStyle(.borderless)
-            .help("Sign Out")
+            .onHover { isHoveringSettings = $0 }
+            .help("Settings (⌘,)")
         }
-        .padding(12)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 8)
     }
 
     @MainActor
@@ -277,6 +323,7 @@ struct LibraryShellView: View {
                 guard let type = view.collectionType else { return true }
                 return !hidden.contains(type)
             }
+            navigator.librariesDidLoad()
             loadError = nil
         } catch is CancellationError {
         } catch {
@@ -347,19 +394,21 @@ struct SettledGrid<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     @Environment(AppNavigator.self) private var navigator
+    @Environment(\.interfaceScale) private var scale
 
+    /// Bigger interface size → bigger cells → fewer columns (animated like any other column change).
     private var columnCount: Int {
         guard navigator.windowWidth > 0 else { return 4 }
         let inset = navigator.isSidebarVisible ? LibraryShellView.reservedWidth : 0
         let width = navigator.windowWidth - inset - horizontalPadding
-        return max(1, Int((width + spacing) / (minimumCellWidth + spacing)))
+        return max(1, Int((width + spacing * scale) / ((minimumCellWidth + spacing) * scale)))
     }
 
     var body: some View {
         LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: spacing, alignment: .top), count: columnCount),
+            columns: Array(repeating: GridItem(.flexible(), spacing: spacing * scale, alignment: .top), count: columnCount),
             alignment: .leading,
-            spacing: 24,
+            spacing: 24 * scale,
             content: content
         )
         .animation(.smooth(duration: 0.3), value: columnCount)
@@ -374,20 +423,19 @@ struct SidebarRow: View {
     let action: () -> Void
 
     @State private var isHovering = false
+    @Environment(\.interfaceScale) private var scale
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 9) {
+            HStack(spacing: 9 * scale) {
                 Image(systemName: systemImage)
-                    .frame(width: 20)
-                Text(title)
-                    .lineLimit(1)
-                Spacer(minLength: 0)
+                    .frame(width: 20 * scale)
+                MarqueeText(text: title, isActive: isHovering)
             }
-            .font(.body)
+            .scaledFont(.body)
             .foregroundStyle(.primary)
             .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.vertical, 7 * scale)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(Color.primary.opacity(isSelected ? 0.11 : (isHovering ? 0.05 : 0)))
@@ -438,11 +486,11 @@ struct PageHeading: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .font(.largeTitle.weight(.bold))
+                .scaledFont(.largeTitle, weight: .bold)
                 .lineLimit(1)
             if let subtitle, !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(.title3)
+                    .scaledFont(.title3)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }

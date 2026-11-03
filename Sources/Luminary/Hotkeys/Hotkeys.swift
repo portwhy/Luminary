@@ -85,7 +85,7 @@ struct KeyBinding: Codable, Hashable {
 }
 
 enum HotkeyGroup: String, CaseIterable, Identifiable {
-    case playback, seeking, tracks, episodes, navigation
+    case playback, seeking, tracks, episodes, navigation, interface
     var id: String { rawValue }
 
     var title: String {
@@ -95,6 +95,7 @@ enum HotkeyGroup: String, CaseIterable, Identifiable {
         case .tracks: "Audio, Subtitles & Speed"
         case .episodes: "Episodes"
         case .navigation: "Library Navigation"
+        case .interface: "Interface Size"
         }
     }
 }
@@ -107,6 +108,7 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
     case previousEpisode, nextEpisode
     // App
     case back, goHome, goNextUp, goFavorites, search, refresh
+    case zoomIn, zoomOut, zoomReset
 
     var id: String { rawValue }
 
@@ -119,10 +121,10 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
         case .volumeUp: "Volume Up"
         case .volumeDown: "Volume Down"
         case .toggleMute: "Mute"
-        case .seekBack: "Back 5 Seconds"
-        case .seekForward: "Forward 5 Seconds"
-        case .seekBackLong: "Back 30 Seconds"
-        case .seekForwardLong: "Forward 30 Seconds"
+        case .seekBack: "Skip Back (short)"
+        case .seekForward: "Skip Forward (short)"
+        case .seekBackLong: "Skip Back (long)"
+        case .seekForwardLong: "Skip Forward (long)"
         case .skipSegment: "Skip Intro / Credits / Recap, or Play Next"
         case .previousChapter: "Previous Chapter"
         case .nextChapter: "Next Chapter"
@@ -142,6 +144,9 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
         case .goFavorites: "Favorites"
         case .search: "Search"
         case .refresh: "Refresh"
+        case .zoomIn: "Bigger"
+        case .zoomOut: "Smaller"
+        case .zoomReset: "Actual Size"
         }
     }
 
@@ -152,10 +157,11 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
         case .cycleAudio, .cycleSubtitles, .subtitlesEarlier, .subtitlesLater, .speedDown, .speedUp, .speedReset: .tracks
         case .previousEpisode, .nextEpisode: .episodes
         case .back, .goHome, .goNextUp, .goFavorites, .search, .refresh: .navigation
+        case .zoomIn, .zoomOut, .zoomReset: .interface
         }
     }
 
-    var isPlayerAction: Bool { group != .navigation }
+    var isPlayerAction: Bool { group != .navigation && group != .interface }
 
     var defaultBinding: KeyBinding? {
         switch self {
@@ -189,6 +195,9 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
         case .goFavorites: KeyBinding(keyCode: 20, modifiers: .command, key: "3")
         case .search: KeyBinding(keyCode: 3, modifiers: .command, key: "F")
         case .refresh: KeyBinding(keyCode: 15, modifiers: .command, key: "R")
+        case .zoomIn: KeyBinding(keyCode: 24, modifiers: .command, key: "=")
+        case .zoomOut: KeyBinding(keyCode: 27, modifiers: .command, key: "-")
+        case .zoomReset: KeyBinding(keyCode: 29, modifiers: .command, key: "0")
         }
     }
 }

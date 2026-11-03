@@ -7,6 +7,7 @@ struct DetailHeader<Actions: View>: View {
     let item: BaseItemDto?
     var showsPoster = false
     @ViewBuilder let actions: () -> Actions
+    @Environment(\.interfaceScale) private var scale
 
     private var backdropURL: URL? {
         guard let item else { return nil }
@@ -101,20 +102,20 @@ struct DetailHeader<Actions: View>: View {
             HStack(alignment: .bottom, spacing: 24) {
                 if showsPoster, let item {
                     Artwork(url: client.posterURL(for: item, maxWidth: 400), aspectRatio: 2.0 / 3.0)
-                        .frame(width: 170)
+                        .frame(width: 170 * scale)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .shadow(color: .black.opacity(0.5), radius: 16, y: 8)
                 }
                 VStack(alignment: .leading, spacing: 10) {
                     Text(item?.name ?? " ")
-                        .font(.system(size: 34, weight: .bold))
+                        .scaledFont(size: 34, weight: .bold)
                         .lineLimit(2)
                     if !metadata.isEmpty {
                         Text(metadata).foregroundStyle(.secondary)
                     }
                     if let tagline = item?.taglines?.first, !tagline.isEmpty {
                         Text(tagline)
-                            .font(.title3.weight(.medium))
+                            .scaledFont(.title3, weight: .medium)
                             .foregroundStyle(.white.opacity(0.9))
                     }
                     if let overview = item?.overview {
@@ -158,7 +159,7 @@ struct SeriesDetailView: View {
                                 .padding(.horizontal, 6)
                         }
                         .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
+                        .scaledControlSize(.large)
                     }
                     if let series {
                         WatchStateButtons(item: series)
@@ -249,12 +250,13 @@ struct EpisodeRow: View {
     let client: JellyfinClient
 
     @State private var isHovering = false
+    @Environment(\.interfaceScale) private var scale
 
     var body: some View {
         ItemLink(item: episode, playsDirectly: true) {
             HStack(alignment: .top, spacing: 16) {
                 Artwork(url: client.episodeThumbURL(for: episode, maxWidth: 480), aspectRatio: 16.0 / 9.0)
-                    .frame(width: 220)
+                    .frame(width: 220 * scale)
                     .overlay(alignment: .bottom) {
                         if let progress = episode.progress {
                             ProgressBar(value: progress).padding(6)
@@ -263,7 +265,7 @@ struct EpisodeRow: View {
                     .overlay {
                         if isHovering {
                             Image(systemName: "play.circle.fill")
-                                .font(.system(size: 38))
+                                .scaledFont(size: 38)
                                 .foregroundStyle(.white)
                                 .shadow(radius: 6)
                         }
@@ -273,7 +275,7 @@ struct EpisodeRow: View {
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
                         Text([episode.indexNumber.map { "\($0)." }, episode.name].compactMap { $0 }.joined(separator: " "))
-                            .font(.headline)
+                            .scaledFont(.headline)
                             .lineLimit(1)
                         if episode.userData?.played == true {
                             Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
@@ -288,11 +290,11 @@ struct EpisodeRow: View {
                                 .labelStyle(.titleAndIcon)
                         }
                     }
-                    .font(.caption)
+                    .scaledFont(.caption)
                     .foregroundStyle(.secondary)
                     if let overview = episode.overview {
                         Text(overview)
-                            .font(.callout)
+                            .scaledFont(.callout)
                             .foregroundStyle(.secondary)
                             .lineLimit(3)
                     }
@@ -345,7 +347,7 @@ struct MovieDetailView: View {
                         WatchStateButtons(item: item)
                     }
                 }
-                .controlSize(.large)
+                .scaledControlSize(.large)
 
                 if let errorMessage {
                     ErrorBanner(message: errorMessage) { Task { await load() } }.padding(.horizontal, 28)
@@ -458,6 +460,7 @@ struct ItemInfoSections: View {
     let client: JellyfinClient
 
     @Environment(\.openURL) private var openURL
+    @Environment(\.interfaceScale) private var scale
 
     private var people: [BaseItemPerson] { item.people ?? [] }
 
@@ -535,7 +538,7 @@ struct ItemInfoSections: View {
 
             if let tags = item.tags, !tags.isEmpty {
                 (Text("Tags: ").fontWeight(.semibold) + Text(tags.joined(separator: ", ")))
-                    .font(.callout)
+                    .scaledFont(.callout)
                     .foregroundColor(.secondary)
                     .lineLimit(3)
                     .padding(.horizontal, 28)
@@ -554,10 +557,10 @@ struct ItemInfoSections: View {
             if !cast.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Cast & Crew")
-                        .font(.title2.weight(.semibold))
+                        .scaledFont(.title2, weight: .semibold)
                         .padding(.horizontal, 28)
                     ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(alignment: .top, spacing: 16) {
+                        LazyHStack(alignment: .top, spacing: 16 * scale) {
                             ForEach(Array(cast.prefix(40).enumerated()), id: \.offset) { _, person in
                                 PersonCard(person: person, client: client)
                             }
@@ -567,13 +570,14 @@ struct ItemInfoSections: View {
                 }
             }
         }
-        .font(.body)
+        .scaledFont(.body)
     }
 }
 
 struct PersonCard: View {
     let person: BaseItemPerson
     let client: JellyfinClient
+    @Environment(\.interfaceScale) private var scale
 
     private var initials: String {
         let words = (person.name ?? "").split(separator: " ")
@@ -600,20 +604,20 @@ struct PersonCard: View {
                         )
                         .overlay {
                             Text(initials)
-                                .font(.system(size: 34, weight: .semibold, design: .rounded))
+                                .scaledFont(size: 34, weight: .semibold, design: .rounded)
                                 .foregroundStyle(.white.opacity(0.85))
                         }
                 }
             }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             Text(person.name ?? "")
-                .font(.callout.weight(.medium))
+                .scaledFont(.callout, weight: .medium)
                 .lineLimit(1)
             Text(person.role.flatMap { $0.isEmpty ? nil : "as \($0)" } ?? person.type ?? "")
-                .font(.caption)
+                .scaledFont(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
-        .frame(width: 120)
+        .frame(width: 120 * scale)
     }
 }

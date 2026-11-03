@@ -10,6 +10,7 @@ struct Shelf: View {
 
     /// id of the card at the leading edge; driven by scrolling and by the arrow buttons.
     @State private var leadingID: String?
+    @Environment(\.interfaceScale) private var scale
 
     private var leadingIndex: Int { items.firstIndex { $0.id == leadingID } ?? 0 }
     private var pageSize: Int { style == .poster ? 4 : 2 }
@@ -18,7 +19,7 @@ struct Shelf: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(title)
-                    .font(.title2.weight(.semibold))
+                    .scaledFont(.title2, weight: .semibold)
                 Spacer()
                 // Arrow buttons, like the Jellyfin apps, for mice without horizontal scrolling.
                 HStack(spacing: 6) {
@@ -28,12 +29,12 @@ struct Shelf: View {
             }
             .padding(.horizontal, 24)
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 18) {
+                LazyHStack(alignment: .top, spacing: 18 * scale) {
                     ForEach(items) { item in
                         ItemLink(item: item, playsDirectly: playsDirectly) {
                             ItemCard(item: item, style: style, client: client)
                         }
-                        .frame(width: style == .poster ? 150 : 290)
+                        .frame(width: (style == .poster ? 150 : 290) * scale)
                     }
                 }
                 .scrollTargetLayout()
@@ -54,7 +55,7 @@ struct Shelf: View {
     private func arrow(_ systemImage: String, enabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 12, weight: .semibold))
+                .scaledFont(size: 12, weight: .semibold)
                 .frame(width: 26, height: 26)
                 .background(.quaternary, in: Circle())
         }
@@ -96,14 +97,14 @@ struct ItemCard: View {
     private var badge: some View {
         if let unplayed = item.userData?.unplayedItemCount, unplayed > 0, item.type == .series || item.type == .season {
             Text("\(unplayed)")
-                .font(.caption2.weight(.bold))
+                .scaledFont(.caption2, weight: .bold)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(.tint, in: Capsule())
                 .foregroundStyle(.white)
         } else if item.userData?.played == true {
             Image(systemName: "checkmark.circle.fill")
-                .font(.body)
+                .scaledFont(.body)
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(.white, .green)
                 .shadow(radius: 2)
@@ -128,11 +129,11 @@ struct ItemCard: View {
                 .shadow(color: .black.opacity(isHovering ? 0.45 : 0.2), radius: isHovering ? 14 : 6, y: 4)
 
             Text(title)
-                .font(.callout.weight(.medium))
+                .scaledFont(.callout, weight: .medium)
                 .lineLimit(1)
             if let subtitle {
                 Text(subtitle)
-                    .font(.caption)
+                    .scaledFont(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -182,7 +183,7 @@ struct Artwork: View {
                         .transition(.opacity)
                 } else if failed || url == nil {
                     Image(systemName: "photo")
-                        .font(.title2)
+                        .scaledFont(.title2)
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -219,6 +220,64 @@ struct ProgressBar: View {
     }
 }
 
+/// One line of text that ends in "…" when it doesn't fit. While `isActive` (hover), a cut-off line slowly
+/// scrolls to show the rest, pauses, and slides back, like Music. Text that fits never moves, and nothing
+/// runs unless the line is cut off and hovered.
+struct MarqueeText: View {
+    let text: String
+    let isActive: Bool
+
+    @State private var fullWidth: CGFloat = 0
+    @State private var boxWidth: CGFloat = 0
+    @State private var offset: CGFloat = 0
+    @State private var isScrolling = false
+
+    private var overflow: CGFloat { max(0, (fullWidth - boxWidth).rounded(.up)) }
+
+    var body: some View {
+        Text(text)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .opacity(isScrolling ? 0 : 1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { boxWidth = $0 }
+            .background(alignment: .leading) {
+                // Measures the full single-line width without affecting layout.
+                Text(text)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .hidden()
+                    .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { fullWidth = $0 }
+            }
+            .overlay(alignment: .leading) {
+                if isScrolling {
+                    Text(text)
+                        .lineLimit(1)
+                        .fixedSize()
+                        .offset(x: offset)
+                }
+            }
+            .clipped()
+            .task(id: isActive && overflow > 0) {
+                guard isActive, overflow > 0 else {
+                    isScrolling = false
+                    offset = 0
+                    return
+                }
+                try? await Task.sleep(for: .milliseconds(500))
+                isScrolling = true
+                while !Task.isCancelled {
+                    let duration = Double(overflow) / 35 // points per second
+                    withAnimation(.linear(duration: duration)) { offset = -overflow }
+                    try? await Task.sleep(for: .seconds(duration + 1.2))
+                    guard !Task.isCancelled else { break }
+                    withAnimation(.easeInOut(duration: 0.35)) { offset = 0 }
+                    try? await Task.sleep(for: .seconds(1.5))
+                }
+            }
+    }
+}
+
 struct ErrorBanner: View {
     let message: String
     let retry: () -> Void
@@ -226,7 +285,7 @@ struct ErrorBanner: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-            Text(message).font(.callout).fixedSize(horizontal: false, vertical: true)
+            Text(message).scaledFont(.callout).fixedSize(horizontal: false, vertical: true)
             Spacer()
             Button("Retry", action: retry)
         }

@@ -44,20 +44,25 @@ final class MPVPlayer {
 
     init() {
         let saved = UserDefaults.standard.double(forKey: Self.volumeKey)
-        volume = saved > 0 ? saved : 100
+        volume = min(saved > 0 ? saved : 100, Double(Preferences.shared.volumeLimit))
+        subtitleScale = Preferences.shared.subtitleScale
     }
 
-    /// The options that make this a "direct play, native rendering" player.
+    /// The options that make this a "direct play, native rendering" player. Settings → Audio & Subtitles and
+    /// Video are read here, so changes there apply to the next video.
     private var options: [(String, String)] {
-        [
+        let preferences = Preferences.shared
+        var options: [(String, String)] = [
             // Render: gpu-next (libplacebo) → Vulkan → MoltenVK → Metal, into our CAMetalLayer.
             ("vo", "gpu-next"),
             ("gpu-api", "vulkan"),
             ("gpu-context", "moltenvk"),
             // Decode: VideoToolbox hardware decoding (H.264, HEVC incl. 10-bit, VP9, AV1 on M3+).
-            ("hwdec", "videotoolbox"),
-            // Subtitles: libass with the file's own styling and embedded fonts, untouched.
-            ("sub-ass-override", "no"),
+            ("hwdec", preferences.hardwareDecoding ? "videotoolbox" : "no"),
+            // Subtitles: libass with the file's own styling and embedded fonts, untouched (or a clean plain style).
+            ("sub-ass-override", preferences.subtitleStyle == .original ? "no" : "force"),
+            ("sub-scale", String(preferences.subtitleScale)),
+            ("sub-pos", String(preferences.subtitlePosition)),
             ("embeddedfonts", "yes"),
             ("sub-auto", "fuzzy"),
             // Network: generous read-ahead so seeks within the buffer are instant.
@@ -85,8 +90,12 @@ final class MPVPlayer {
             ("ytdl", "no"),
             ("audio-client-name", "Luminary"),
             ("volume", String(Int(volume))),
-            ("volume-max", "130"),
+            ("volume-max", String(preferences.volumeLimit)),
+            ("deband", preferences.deband ? "yes" : "no"),
         ]
+        // HDR: by default mpv drives the display in HDR (EDR) for HDR video; "Always SDR" tone-maps instead.
+        if preferences.hdrMode == .sdr { options.append(("target-colorspace-hint", "no")) }
+        return options
     }
 
     // MARK: Lifecycle
@@ -152,7 +161,7 @@ final class MPVPlayer {
     }
 
     func setVolume(_ value: Double) {
-        let clamped = min(max(value, 0), 130)
+        let clamped = min(max(value, 0), Double(Preferences.shared.volumeLimit))
         volume = clamped
         core?.setDouble("volume", clamped)
         UserDefaults.standard.set(clamped, forKey: Self.volumeKey)

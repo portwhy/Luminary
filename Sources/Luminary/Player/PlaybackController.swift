@@ -194,13 +194,14 @@ final class PlaybackController {
     @ObservationIgnored private var lastScrubSeek: Double = -10
     @ObservationIgnored private var scrubOrigin: Double?
     @ObservationIgnored private var jumpBackTask: Task<Void, Never>?
-    @ObservationIgnored private static let bitrateKey = "app.luminary.maxBitrate"
+    /// Where playback resumed (offers "Start from Beginning" once the file is open).
+    @ObservationIgnored private var resumedFrom: Double?
+    /// Segments already skipped automatically, so going back into one doesn't skip it again.
+    @ObservationIgnored private var autoSkippedSegments: Set<String> = []
     @ObservationIgnored private let startedAt = Date()
 
-    static var savedMaxBitrate: Int {
-        let saved = UserDefaults.standard.integer(forKey: bitrateKey)
-        return saved > 0 ? saved : JellyfinClient.unlimitedBitrate
-    }
+    /// The quality cap for where the Mac is right now (Settings → Playback: at home / away).
+    static var savedMaxBitrate: Int { Preferences.shared.currentMaxBitrate }
 
     @ObservationIgnored private var nowPlaying: NowPlayingBridge?
 
@@ -264,7 +265,7 @@ final class PlaybackController {
         guard nextEpisode != nil, !upNextDismissed, player.duration > 60 else { return false }
         let remaining = player.duration - player.timePos
         let inCredits = activeSegment?.type == "Outro"
-        return remaining <= 30 || inCredits
+        return remaining <= Double(Preferences.shared.upNextCountdown) || inCredits
     }
 
     var secondsRemaining: Int { max(0, Int(player.duration - player.timePos)) }
@@ -299,9 +300,27 @@ final class PlaybackController {
             }
             player.onEndOfFile = { [weak self] in self?.finish() }
 
-            let startAt = request.fromBeginning ? 0 : (item.resumeSeconds ?? 0)
-            let playable = apply(resolved, audio: nil, subtitle: nil)
-            player.load(url: playable.url, startAt: startAt)
+            let preferences = Preferences.shared
+            let resume = request.fromBeginning || preferences.resumeMode == .beginning ? 0 : (item.resumeSeconds ?? 0)
+            resumedFrom = resume > 1 ? resume : nil
+            player.setSpeed(preferences.defaultSpeed)
+
+            // Audio/subtitle tracks from Settings → Audio & Subtitles (falls back to the server's choice).
+            let choice = TrackChoice.choose(
+                streams: resolved.source.mediaStreams ?? [],
+                serverAudio: resolved.source.defaultAudioStreamIndex,
+                serverSubtitle: resolved.source.defaultSubtitleStreamIndex
+            )
+            let serverSubtitle = resolved.source.defaultSubtitleStreamIndex ?? -1
+            if resolved.method == .transcode,
+               choice.audio != resolved.source.defaultAudioStreamIndex || choice.subtitle != serverSubtitle {
+                // A transcode carries the tracks it was asked for, so ask again with the preferred ones.
+                playback = resolved
+                try await resolveAndLoad(startAt: resume, audio: choice.audio, subtitle: choice.subtitle)
+            } else {
+                let playable = apply(resolved, audio: choice.audio, subtitle: choice.subtitle)
+                player.load(url: playable.url, startAt: resume)
+            }
             mark("loadfile sent")
             pokeControls()
 
@@ -386,7 +405,12 @@ final class PlaybackController {
 
     private func finish() {
         if nextEpisode != nil {
-            playNext()
+            if Preferences.shared.autoplayNext {
+                playNext()
+            } else {
+                upNextDismissed = false // autoplay off: wait on the Up Next card
+                pokeControls()
+            }
         } else {
             stop()
             close()
@@ -404,6 +428,10 @@ final class PlaybackController {
         applyAudioSelection()
         applySubtitleSelection()
         player.setSpeed(player.speed)
+        if resumedFrom != nil {
+            resumedFrom = nil
+            offerStartOver()
+        }
         guard !didReportStart else { return }
         didReportStart = true
         if let report = makeReport() {
@@ -463,9 +491,20 @@ final class PlaybackController {
     /// the button is still up, it keeps pointing at your *original* spot.
     func offerJumpBack(from origin: Double, to target: Double) {
         guard abs(target - origin) >= 15, origin > 1, player.duration > 0 else { return }
-        if jumpBackPosition == nil {
+        if jumpBackPosition == nil || jumpBackPosition == 0 {
             withAnimation(.easeOut(duration: 0.2)) { jumpBackPosition = origin }
         }
+        jumpBackTask?.cancel()
+        jumpBackTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(8))
+            guard let self, !Task.isCancelled else { return }
+            withAnimation(.easeIn(duration: 0.25)) { self.jumpBackPosition = nil }
+        }
+    }
+
+    /// After resuming partway in: a pill that starts the video over (position 0 means "from the beginning").
+    private func offerStartOver() {
+        withAnimation(.easeOut(duration: 0.2)) { jumpBackPosition = 0 }
         jumpBackTask?.cancel()
         jumpBackTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(8))
@@ -506,6 +545,18 @@ final class PlaybackController {
         } else {
             jump(to: chapters[currentIndex - 1].start)
         }
+    }
+
+    /// Called when an intro / recap / credits segment starts (CornerCards watches the playhead).
+    func segmentBegan(_ segment: MediaSegmentDto) {
+        guard skipMode(for: segment) == .automatic, !autoSkippedSegments.contains(segment.id) else { return }
+        autoSkippedSegments.insert(segment.id)
+        jump(to: segment.end) // the "Back to …" pill undoes it
+    }
+
+    /// Settings → Playback: intros and recaps share one setting, credits have their own.
+    func skipMode(for segment: MediaSegmentDto) -> SegmentSkipMode {
+        segment.type == "Outro" ? Preferences.shared.creditsSkip : Preferences.shared.introSkip
     }
 
     func dismissUpNext() {
@@ -630,7 +681,7 @@ final class PlaybackController {
     func setMaxBitrate(_ bitrate: Int) {
         guard bitrate != qualitySelection else { return }
         maxBitrate = bitrate
-        UserDefaults.standard.set(bitrate, forKey: Self.bitrateKey)
+        Preferences.shared.currentMaxBitrate = bitrate // remembered for home or away, wherever we are
         Task { await reload(audio: selectedAudioIndex, subtitle: selectedSubtitleIndex) }
     }
 
@@ -713,7 +764,7 @@ final class PlaybackController {
         hideTask?.cancel()
         guard !player.isPaused, !isHoveringControls, !isMenuOpen else { return }
         hideTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(2.5))
+            try? await Task.sleep(for: .seconds(Preferences.shared.controlsHideDelay))
             guard let self, !Task.isCancelled, !self.player.isPaused, !self.isHoveringControls, !self.isMenuOpen else { return }
             withAnimation(.easeInOut(duration: 0.35)) { self.controlsVisible = false }
             NSCursor.setHiddenUntilMouseMoves(true)
@@ -755,13 +806,13 @@ final class PlaybackController {
         case .toggleFullScreen: toggleFullScreen()
         case .exitPlayer: if isFullScreen { toggleFullScreen() } else { close() }
         case .toggleStats: toggleStats()
-        case .volumeUp: player.setVolume(min(player.volume + 5, 100))
+        case .volumeUp: player.setVolume(player.volume + 5)
         case .volumeDown: player.setVolume(player.volume - 5)
         case .toggleMute: player.setMuted(!player.isMuted)
-        case .seekBack: player.seek(by: -5)
-        case .seekForward: player.seek(by: 5)
-        case .seekBackLong: player.seek(by: -30)
-        case .seekForwardLong: player.seek(by: 30)
+        case .seekBack: player.seek(by: -Double(Preferences.shared.seekShort))
+        case .seekForward: player.seek(by: Double(Preferences.shared.seekShort))
+        case .seekBackLong: player.seek(by: -Double(Preferences.shared.seekLong))
+        case .seekForwardLong: player.seek(by: Double(Preferences.shared.seekLong))
         case .skipSegment: skipCurrentSegment()
         case .previousChapter: previousChapter()
         case .nextChapter: nextChapter()
@@ -776,6 +827,7 @@ final class PlaybackController {
         case .previousEpisode: playPrevious()
         case .nextEpisode: playNext()
         case .back, .goHome, .goNextUp, .goFavorites, .search, .refresh: break // library window (Go menu)
+        case .zoomIn, .zoomOut, .zoomReset: break // library window (View menu)
         }
     }
 

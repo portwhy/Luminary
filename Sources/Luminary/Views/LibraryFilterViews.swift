@@ -46,9 +46,9 @@ struct FilterChip: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Text(title).lineLimit(1)
-                if showsRemove { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)) }
+                if showsRemove { Image(systemName: "xmark").scaledFont(size: 9, weight: .bold) }
             }
-            .font(.callout)
+            .scaledFont(.callout)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(isSelected || showsRemove ? AnyShapeStyle(Color.accentColor.opacity(0.85)) : AnyShapeStyle(.quaternary), in: Capsule())
@@ -70,7 +70,7 @@ struct LibraryFilterButton: View {
             isShowing.toggle()
         } label: {
             Label(filter.isEmpty ? "Filter" : "Filter · \(filter.count)", systemImage: "line.3.horizontal.decrease")
-                .font(.callout.weight(.medium))
+                .scaledFont(.callout, weight: .medium)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(filter.isEmpty ? AnyShapeStyle(.quaternary) : AnyShapeStyle(Color.accentColor.opacity(0.85)), in: Capsule())
@@ -101,7 +101,7 @@ private struct FilterPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Filter").font(.headline)
+                Text("Filter").scaledFont(.headline)
                 Spacer()
                 Button("Clear All") { filter = LibraryFilter() }
                     .buttonStyle(.borderless)
@@ -128,7 +128,7 @@ private struct FilterPanel: View {
                     }
                     if !options.tags.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Tags").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                            Text("Tags").scaledFont(.subheadline, weight: .semibold).foregroundStyle(.secondary)
                             TextField("Search \(options.tags.count) tags", text: $tagSearch)
                                 .textFieldStyle(.roundedBorder)
                             FlowLayout {
@@ -137,7 +137,7 @@ private struct FilterPanel: View {
                                 }
                             }
                             if tagSearch.isEmpty && options.tags.count > 30 {
-                                Text("Type to search the rest.").font(.caption).foregroundStyle(.secondary)
+                                Text("Type to search the rest.").scaledFont(.caption).foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -150,7 +150,7 @@ private struct FilterPanel: View {
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Text(title).scaledFont(.subheadline, weight: .semibold).foregroundStyle(.secondary)
             FlowLayout { content() }
         }
     }
@@ -178,7 +178,7 @@ struct ActiveFilterRow: View {
             // Same height and padding as a chip so it sits level with them.
             Button { filter = LibraryFilter() } label: {
                 Text("Clear All")
-                    .font(.callout)
+                    .scaledFont(.callout)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)

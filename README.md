@@ -20,6 +20,8 @@ Luminary is free, open source, and not affiliated with the Jellyfin project.
 - Skip Intro / Credits (Jellyfin 10.10+ with a segment plugin such as Intro Skipper), chapters, Up Next autoplay
 - Media keys and AirPods controls, playback stats panel, trackpad scrubbing
 - Optional glass window background (View → Glass Background, ⌃⌘G)
+- Interface size from 85 % to 150 % (⌘= / ⌘-), and settings for quality at home vs away, skipping intros and
+  credits, autoplay, preferred audio and subtitle languages, subtitle look, HDR and more
 - Every shortcut can be rebound in Settings
 
 ## What it direct plays
@@ -67,13 +69,13 @@ All shortcuts are listed, and can be rebound, in **Luminary → Settings… (⌘
 | Player | | Library | |
 |---|---|---|---|
 | Space · click | Play / pause | ⌘[ · mouse back button | Back |
-| ← / → (⇧ for 30 s) | Seek 5 s | ⌘1 / ⌘2 / ⌘3 | Home / Next Up / Favorites |
+| ← / → (⇧ for 30 s) | Seek 5 s (lengths adjustable in Settings) | ⌘1 / ⌘2 / ⌘3 | Home / Next Up / Favorites |
 | Return | Skip intro / credits, or play next | ⌘4 – ⌘9 | Libraries in sidebar order |
 | Page Up / Page Down | Previous / next chapter | ⌘F | Search |
 | P / N | Previous / next episode | ⌘R | Refresh |
 | ↑ / ↓ · M | Volume · mute | ⌃⌘S | Show / hide sidebar |
 | A / S | Next audio / subtitle track | ⌃⌘G | Glass background |
-| Z / X | Subtitles earlier / later | | |
+| Z / X | Subtitles earlier / later | ⌘= / ⌘- / ⌘0 | Bigger / smaller / actual size |
 | [ / ] / \\ | Slower / faster / normal speed | | |
 | F · double-click | Full screen | | |
 | Esc | Exit full screen, then back to library | | |

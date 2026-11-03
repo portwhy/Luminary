@@ -80,6 +80,11 @@ struct LoginView: View {
         .padding(34)
         .frame(width: 400)
         .loginGlassCard()
+        // Just under the box. Hung off its bottom edge so the box itself stays centered in the window.
+        .overlay(alignment: .bottom) {
+            SupportLink()
+                .alignmentGuide(.bottom) { $0[.top] - 14 }
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LoginWindowGlass())
         .onAppear { focus = server.isEmpty ? .server : .username }
@@ -217,5 +222,27 @@ private struct LoginWindowGlass: NSViewRepresentable {
             window.isOpaque = !glassOn
             window.backgroundColor = glassOn ? .clear : AppTheme.solidNS
         }
+    }
+}
+
+/// Quiet "Support Luminary" link under the sign-in box, with the same soft hover highlight as the sidebar buttons.
+private struct SupportLink: View {
+    @Environment(\.openURL) private var openURL
+    @State private var isHovering = false
+
+    var body: some View {
+        Button {
+            openURL(Links.support)
+        } label: {
+            Label("Support Luminary", systemImage: "heart.fill")
+                .font(.callout)
+                .foregroundStyle(isHovering ? .primary : .secondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Capsule().fill(Color.primary.opacity(isHovering ? 0.08 : 0)))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
     }
 }

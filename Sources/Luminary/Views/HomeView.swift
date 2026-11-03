@@ -46,13 +46,25 @@ struct HomeView: View {
             Task { await load() }
         }
         .task { await load() }
-        .task(id: navigator.libraries.map(\.id)) { await loadRecent() }
+        .task(id: recentShelvesKey) { await loadRecent() }
     }
 
     @MainActor
+    /// Reloads the Recently Added shelves when the libraries or Settings → General shelf choices change.
+    private var recentShelvesKey: [String] {
+        let preferences = Preferences.shared
+        return navigator.libraries.map(\.id) + ["\(preferences.showRecentlyAdded)"] + preferences.hiddenRecentlyAdded.sorted()
+    }
+
     private func loadRecent() async {
-        let libraries = navigator.libraries
-        guard !libraries.isEmpty else { return }
+        let preferences = Preferences.shared
+        let libraries = preferences.showRecentlyAdded
+            ? navigator.libraries.filter { !preferences.hiddenRecentlyAdded.contains($0.id) }
+            : []
+        guard !libraries.isEmpty else {
+            recent = []
+            return
+        }
         let client = client
         // All libraries at once; a failure in one just leaves its shelf out.
         let results = await withTaskGroup(of: (Int, [BaseItemDto]).self) { group in
@@ -197,14 +209,18 @@ struct LibraryGridView: View {
         .pageTitle(title, subtitle: total.map { "\($0) items" })
         .task { await loadNextPage() }
         .task { options = try? await client.filterOptions(parentId: libraryId, includeItemTypes: includeTypes) }
-        .onChange(of: filter.wrappedValue) {
-            generation += 1
-            items = []
-            total = nil
-            errorMessage = nil
-            isLoading = false
-            Task { await loadNextPage() }
-        }
+        .onChange(of: filter.wrappedValue) { restart() }
+        .onChange(of: Preferences.shared.hideWatchedInLibraries) { restart() }
+    }
+
+    /// Start over from the first page (filter or "hide watched" changed).
+    private func restart() {
+        generation += 1
+        items = []
+        total = nil
+        errorMessage = nil
+        isLoading = false
+        Task { await loadNextPage() }
     }
 
     /// Movies → movies, shows (incl. anime) → series; anything else → direct children.
@@ -231,6 +247,7 @@ struct LibraryGridView: View {
             recursive: !types.isEmpty,
             startIndex: items.count,
             limit: pageSize,
+            filters: Preferences.shared.hideWatchedInLibraries ? ["IsUnplayed"] : [],
             tags: active.tags.sorted(),
             genres: active.genres.sorted(),
             years: active.years.sorted()

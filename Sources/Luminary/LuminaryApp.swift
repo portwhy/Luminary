@@ -7,6 +7,7 @@ struct LuminaryApp: App {
     @State private var session = SessionManager()
     @State private var navigator = AppNavigator()
     private let hotkeys = HotkeyStore.shared
+    private let preferences = Preferences.shared
 
     var body: some Scene {
         WindowGroup("Luminary") {
@@ -24,6 +25,16 @@ struct LuminaryApp: App {
                     .keyboardShortcut("s", modifiers: [.control, .command])
                 Button(AppTheme.shared.glass ? "Solid Background" : "Glass Background") { AppTheme.shared.glass.toggle() }
                     .keyboardShortcut("g", modifiers: [.control, .command])
+                Divider()
+                Button("Bigger") { preferences.zoomIn() }
+                    .keyboardShortcut(hotkeys.shortcut(.zoomIn))
+                    .disabled(!preferences.canZoomIn)
+                Button("Smaller") { preferences.zoomOut() }
+                    .keyboardShortcut(hotkeys.shortcut(.zoomOut))
+                    .disabled(!preferences.canZoomOut)
+                Button("Actual Size") { preferences.resetZoom() }
+                    .keyboardShortcut(hotkeys.shortcut(.zoomReset))
+                    .disabled(preferences.interfaceScale == 1)
             }
             CommandMenu("Go") {
                 Button("Back") { navigator.goBack() }
@@ -69,6 +80,8 @@ struct LuminaryApp: App {
 
         Settings {
             SettingsView()
+                .environment(session)
+                .environment(navigator)
         }
     }
 }

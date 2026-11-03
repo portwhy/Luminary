@@ -23,6 +23,17 @@ struct LibraryFilter: Equatable {
 @MainActor
 @Observable
 final class AppNavigator {
+    @ObservationIgnored private var pendingStartLibrary: String?
+
+    /// Called once the sidebar's libraries are known: opens the start-page library if that's the setting
+    /// (unless you've already gone somewhere else).
+    func librariesDidLoad() {
+        defer { pendingStartLibrary = nil }
+        guard let id = pendingStartLibrary, selection == .home, path.isEmpty,
+              let index = libraries.firstIndex(where: { $0.id == id }) else { return }
+        showLibrary(at: index)
+    }
+
     private(set) var selection: SidebarItem? = .home
     var path = NavigationPath()
     var searchText = ""
@@ -105,7 +116,10 @@ final class AppNavigator {
     }
 
     func reset() {
-        selection = .home
+        // Settings → General → Start page. A library has to wait until the library list has loaded.
+        let start = Preferences.shared.startPage
+        selection = start == "nextUp" ? .nextUp : start == "favorites" ? .favorites : .home
+        pendingStartLibrary = start.hasPrefix("library:") ? String(start.dropFirst("library:".count)) : nil
         path = NavigationPath()
         searchText = ""
         libraries = []
