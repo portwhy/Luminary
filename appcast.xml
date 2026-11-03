@@ -6,6 +6,21 @@
     <link>https://github.com/portwhy/Luminary</link>
     <!-- releases (newest first) -->
     <item>
+      <title>Luminary 0.2.4</title>
+      <pubDate>Tue, 03 Nov 2026 02:00:15 GMT</pubDate>
+      <sparkle:version>6</sparkle:version>
+      <sparkle:shortVersionString>0.2.4</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/portwhy/Luminary/releases/tag/v0.2.4</sparkle:fullReleaseNotesLink>
+      <description sparkle:format="plain-text"><![CDATA[Early access. No more password popups after updates.
+
+ What's new
+- Updates keep you signed in without macOS asking for your login password. Before installing, Luminary passes your saved sign-in to the new version, which stores it in the Keychain itself.
+
+This update asks for your password one last time (0.2.3 doesn't have this yet): click Always Allow. From here on, updates are quiet.]]></description>
+      <enclosure url="https://github.com/portwhy/Luminary/releases/download/v0.2.4/Luminary-0.2.4.dmg" sparkle:edSignature="EL4iEchFDOb1ICnL4fTj8VxlCIKFTBx4ctnxh7lBg1mfSMSNEcOUCi9JvfMt6QHEAG+RciECpHNpdPegBmJaCA==" length="18108790" type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Luminary 0.2.3</title>
       <pubDate>Tue, 03 Nov 2026 01:43:25 GMT</pubDate>
       <sparkle:version>5</sparkle:version>
