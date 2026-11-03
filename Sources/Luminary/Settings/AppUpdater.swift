@@ -1,8 +1,10 @@
+import AppKit
 import Foundation
 import Observation
 import Sparkle
 
-/// In-app updates through Sparkle: a background check about once a day, Luminary → Check for Updates…, and
+/// In-app updates through Sparkle: a background check every few hours, plus one when the app comes to the front
+/// if the last was over an hour ago, Luminary → Check for Updates…, and
 /// Settings → General → Updates. Updates are DMGs on GitHub Releases listed in `appcast.xml` in the repo, and Sparkle
 /// only installs ones signed with our EdDSA key. Runs only in a real Luminary.app that has a feed URL in its
 /// Info.plist (scripts/make-app.sh), so `swift run` and dev builds never check.
@@ -39,10 +41,26 @@ final class AppUpdater {
             : nil
         checksAutomatically = controller?.updater.automaticallyChecksForUpdates ?? false
         installsAutomatically = controller?.updater.automaticallyDownloadsUpdates ?? false
+        // Sparkle's scheduler never goes below an hour; every 4 hours, plus a check whenever Luminary comes to the front.
+        controller?.updater.updateCheckInterval = 4 * 3600
+        if controller != nil {
+            NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
+                MainActor.assumeIsolated { AppUpdater.shared.checkIfStale() }
+            }
+        }
         canCheckObservation = controller?.updater.observe(\.canCheckForUpdates, options: [.initial, .new]) { updater, _ in
             let canCheck = updater.canCheckForUpdates
             Task { @MainActor in AppUpdater.shared.canCheckForUpdates = canCheck }
         }
+    }
+
+    /// Coming back to Luminary after a while: look for a release now instead of waiting for the next scheduled check.
+    /// The feed is a small text file, and this runs at most once an hour.
+    private func checkIfStale() {
+        guard let updater = controller?.updater, updater.automaticallyChecksForUpdates, updater.canCheckForUpdates,
+              readyVersion == nil else { return }
+        if let last = updater.lastUpdateCheckDate, Date().timeIntervalSince(last) < 3600 { return }
+        updater.checkForUpdatesInBackground()
     }
 
     func checkForUpdates() {

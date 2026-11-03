@@ -163,6 +163,7 @@ struct PlaybackSettings: View {
                 Picker("Show Up Next", selection: $preferences.upNextCountdown) {
                     ForEach([10, 20, 30, 45, 60], id: \.self) { Text("\($0) seconds before the end").tag($0) }
                 }
+                Toggle("Also show it when short credits begin", isOn: $preferences.upNextAtCredits)
             }
 
             Section {

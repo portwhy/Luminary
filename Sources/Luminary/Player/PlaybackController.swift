@@ -12,6 +12,8 @@ struct PlaybackRequest: Codable, Hashable {
 extension Notification.Name {
     /// Posted when watch state may have changed (playback stopped, marked watched, favorited).
     static let luminaryLibraryChanged = Notification.Name("app.luminary.libraryChanged")
+    /// The user asked for a full refresh (Go → Refresh): pages also reload their shelves and grids from the server.
+    static let luminaryRefresh = Notification.Name("app.luminary.refresh")
 }
 
 struct QualityOption: Identifiable, Hashable {
@@ -261,11 +263,23 @@ final class PlaybackController {
         return segments.first { $0.skipLabel != nil && t >= $0.start && t < $0.end - 1 }
     }
 
+    /// Credits that end with more than this much video still to come (anime: a preview or a scene after the ending
+    /// song) are skipped with Skip Credits. With less, there's nothing worth staying for, so it's the Up Next card.
+    /// Only one of the two shows at a time, so the skip key always has one clear meaning.
+    private static let creditsTailLimit = 45.0
+
+    /// Seconds of video left after the active credits segment ends (nil outside credits).
+    private var tailAfterCredits: Double? {
+        guard let segment = activeSegment, segment.type == "Outro" else { return nil }
+        return player.duration - segment.end
+    }
+
     var showsUpNext: Bool {
         guard nextEpisode != nil, !upNextDismissed, player.duration > 60 else { return false }
         let remaining = player.duration - player.timePos
-        let inCredits = activeSegment?.type == "Outro"
-        return remaining <= Double(Preferences.shared.upNextCountdown) || inCredits
+        if remaining <= Double(Preferences.shared.upNextCountdown) { return true }
+        guard Preferences.shared.upNextAtCredits, let tail = tailAfterCredits else { return false }
+        return tail <= Self.creditsTailLimit
     }
 
     var secondsRemaining: Int { max(0, Int(player.duration - player.timePos)) }
@@ -309,7 +323,8 @@ final class PlaybackController {
             let choice = TrackChoice.choose(
                 streams: resolved.source.mediaStreams ?? [],
                 serverAudio: resolved.source.defaultAudioStreamIndex,
-                serverSubtitle: resolved.source.defaultSubtitleStreamIndex
+                serverSubtitle: resolved.source.defaultSubtitleStreamIndex,
+                remembered: item.type == .episode ? item.seriesId.flatMap { SeriesTrackMemory.tracks(for: $0) } : nil
             )
             let serverSubtitle = resolved.source.defaultSubtitleStreamIndex ?? -1
             if resolved.method == .transcode,
@@ -527,23 +542,58 @@ final class PlaybackController {
 
     // MARK: Chapters
 
-    var hasChapters: Bool { chapters.count > 1 }
+    var hasChapters: Bool { jumpPoints.count > 1 }
+
+    /// Where [ and ] and the chapters menu go: the file's chapters, or, when it has none, the start of the episode and
+    /// the start and end of Jellyfin's intro / recap / credits marks (anime often has no chapters at all).
+    struct JumpPoint { let name: String; let start: Double }
+
+    var jumpPoints: [JumpPoint] {
+        if chapters.count > 1 {
+            return chapters.enumerated().map { JumpPoint(name: $1.name ?? "Chapter \($0 + 1)", start: $1.start) }
+        }
+        var points = [JumpPoint(name: "Start", start: 0)]
+        for segment in segments.sorted(by: { $0.start < $1.start }) {
+            let name: String
+            switch segment.type {
+            case "Intro": name = "Intro"
+            case "Outro": name = "Credits"
+            case "Recap": name = "Recap"
+            case "Preview": name = "Preview"
+            default: continue
+            }
+            points.append(JumpPoint(name: name, start: segment.start))
+            points.append(JumpPoint(name: "After \(name.lowercased())", start: segment.end))
+        }
+        // Drop points that sit on top of each other or at the very end of the file.
+        let limit = player.duration > 0 ? player.duration - 3 : .infinity
+        var kept: [JumpPoint] = []
+        for point in points.sorted(by: { $0.start < $1.start }) where point.start < limit {
+            if let last = kept.last, point.start - last.start < 2 { continue }
+            kept.append(point)
+        }
+        return kept
+    }
 
     func nextChapter() {
         let now = player.timePos
-        guard let next = chapters.first(where: { $0.start > now + 1 }) else { return }
-        jump(to: next.start)
+        if let next = jumpPoints.first(where: { $0.start > now + 1 }) {
+            jump(to: next.start)
+        } else if player.duration > 0, now < player.duration - 2 {
+            jump(to: player.duration) // past the last point: straight to the end (the jump-back pill undoes it)
+        }
     }
 
     /// Like a CD player: more than 3 s into a chapter goes back to its start; otherwise to the one before.
     func previousChapter() {
         let now = player.timePos
-        guard let currentIndex = chapters.lastIndex(where: { $0.start <= now + 0.5 }) else { return }
-        let current = chapters[currentIndex]
+        let points = jumpPoints
+        guard let currentIndex = points.lastIndex(where: { $0.start <= now + 0.5 }) else { return }
+        let current = points[currentIndex]
         if now - current.start > 3 || currentIndex == 0 {
             jump(to: current.start)
         } else {
-            jump(to: chapters[currentIndex - 1].start)
+            jump(to: points[currentIndex - 1].start)
         }
     }
 
@@ -568,6 +618,9 @@ final class PlaybackController {
     func selectAudio(_ index: Int) {
         guard index != selectedAudioIndex else { return }
         selectedAudioIndex = index
+        if let seriesId = rememberKey, let stream = audioStreams.first(where: { $0.index == index }) {
+            SeriesTrackMemory.rememberAudio(stream, seriesId: seriesId)
+        }
         if isTranscoding {
             // The transcode carries exactly one audio track; switching means a new transcode.
             Task { await reload(audio: index, subtitle: selectedSubtitleIndex) }
@@ -581,6 +634,9 @@ final class PlaybackController {
         let previous = selectedSubtitleIndex
         guard index != previous else { return }
         selectedSubtitleIndex = index
+        if let seriesId = rememberKey {
+            SeriesTrackMemory.rememberSubtitle(subtitleStreams.first { $0.index == index }, seriesId: seriesId)
+        }
         let needsNewTranscode = isTranscoding && (isBurnedIn(previous) || isBurnedIn(index))
         if needsNewTranscode {
             Task { await reload(audio: selectedAudioIndex, subtitle: index) }
@@ -589,6 +645,9 @@ final class PlaybackController {
             sendProgress()
         }
     }
+
+    /// Episodes remember the viewer's audio and subtitle picks per series; movies don't.
+    private var rememberKey: String? { item?.type == .episode ? item?.seriesId : nil }
 
     func cycleAudio() {
         let options = audioStreams.map(\.index)
@@ -826,19 +885,28 @@ final class PlaybackController {
         case .speedReset: player.setSpeed(1)
         case .previousEpisode: playPrevious()
         case .nextEpisode: playNext()
+        case .playNow: if showsUpNext { playNext() }
         case .back, .goHome, .goNextUp, .goFavorites, .search, .refresh: break // library window (Go menu)
-        case .zoomIn, .zoomOut, .zoomReset: break // library window (View menu)
+        case .zoomIn: Preferences.shared.zoomIn()
+        case .zoomOut: Preferences.shared.zoomOut()
+        case .zoomReset: Preferences.shared.resetZoom()
         }
     }
 
-    /// Whatever the on-screen corner button would do: Play Next if the Up Next card is up,
-    /// otherwise skip the current intro / recap / credits.
+    /// What Return does: skip the current intro / recap / credits, or Play Next when the Up Next card is up on its own.
+    /// With both on screen, Return skips and Shift+Return (Play Next Now) plays the next episode.
     func skipCurrentSegment() {
-        if showsUpNext {
-            playNext()
-        } else if let segment = activeSegment {
+        if canSkipSegment, let segment = activeSegment {
             jump(to: segment.end)
+        } else if showsUpNext {
+            playNext()
         }
+    }
+
+    /// There's something worth skipping to: credits that end within 10 s of the file's end aren't.
+    var canSkipSegment: Bool {
+        guard let segment = activeSegment else { return false }
+        return segment.type != "Outro" || player.duration - segment.end >= 10
     }
 
     // MARK: Trackpad scrubbing

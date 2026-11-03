@@ -152,6 +152,8 @@ final class Preferences {
     var creditsSkip = Stored.enumValue("creditsSkip", SegmentSkipMode.button) { didSet { Stored.set(creditsSkip.rawValue, "creditsSkip") } }
     var autoplayNext = Stored.bool("autoplayNext", true) { didSet { Stored.set(autoplayNext, "autoplayNext") } }
     var upNextCountdown = Stored.int("upNextCountdown", 30) { didSet { Stored.set(upNextCountdown, "upNextCountdown") } }
+    /// Offer Play Now as soon as short credits begin. Off: the Up Next card waits for the last seconds, so the end plays out.
+    var upNextAtCredits = Stored.bool("upNextAtCredits", true) { didSet { Stored.set(upNextAtCredits, "upNextAtCredits") } }
     var seekShort = Stored.int("seekShort", 5) { didSet { Stored.set(seekShort, "seekShort") } }
     var seekLong = Stored.int("seekLong", 30) { didSet { Stored.set(seekLong, "seekLong") } }
     var skipButtonSeconds = Stored.int("skipButtonSeconds", 10) { didSet { Stored.set(skipButtonSeconds, "skipButtonSeconds") } }

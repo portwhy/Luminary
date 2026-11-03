@@ -45,6 +45,9 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .luminaryLibraryChanged)) { _ in
             Task { await load() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .luminaryRefresh)) { _ in
+            Task { await loadRecent() }
+        }
         .task { await load() }
         .task(id: recentShelvesKey) { await loadRecent() }
     }
@@ -211,6 +214,10 @@ struct LibraryGridView: View {
         .task { options = try? await client.filterOptions(parentId: libraryId, includeItemTypes: includeTypes) }
         .onChange(of: filter.wrappedValue) { restart() }
         .onChange(of: Preferences.shared.hideWatchedInLibraries) { restart() }
+        .onReceive(NotificationCenter.default.publisher(for: .luminaryRefresh)) { _ in
+            restart()
+            Task { options = try? await client.filterOptions(parentId: libraryId, includeItemTypes: includeTypes) }
+        }
     }
 
     /// Start over from the first page (filter or "hide watched" changed).

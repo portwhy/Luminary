@@ -66,6 +66,7 @@ struct LuminaryApp: App {
                     .keyboardShortcut(hotkeys.shortcut(.search))
                 Button("Refresh") {
                     NotificationCenter.default.post(name: .luminaryLibraryChanged, object: nil)
+                    NotificationCenter.default.post(name: .luminaryRefresh, object: nil)
                 }
                 .keyboardShortcut(hotkeys.shortcut(.refresh))
             }

@@ -61,11 +61,14 @@ struct PlayerScreen: View {
             }
 
             PlayerOverlay(controller: controller)
+                .environment(\.interfaceScale, Preferences.shared.interfaceScale)
                 .opacity(controller.controlsVisible ? 1 : 0)
                 .allowsHitTesting(controller.controlsVisible)
 
             CornerCards(controller: controller)
+                .environment(\.interfaceScale, Preferences.shared.interfaceScale)
             JumpBackPill(controller: controller)
+                .environment(\.interfaceScale, Preferences.shared.interfaceScale)
 
             if controller.showsStats {
                 VStack {
@@ -117,6 +120,7 @@ struct CornerCards: View {
     /// True for the first 5 seconds of an intro/credits segment. After that the Skip button hides, and comes
     /// back with the controls bar when the mouse moves (it goes again when the bar does).
     @State private var skipGrace = false
+    @Environment(\.interfaceScale) private var scale
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 12) {
@@ -124,35 +128,31 @@ struct CornerCards: View {
             if controller.showsUpNext, let next = controller.nextEpisode {
                 UpNextCard(controller: controller, next: next)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
-            } else if let segment = controller.activeSegment, let label = segment.skipLabel,
-                      controller.skipMode(for: segment) == .button, skipGrace || controller.controlsVisible {
+            }
+            if let segment = controller.activeSegment, controller.canSkipSegment, let label = segment.skipLabel,
+               controller.skipMode(for: segment) == .button, skipGrace || controller.controlsVisible {
                 Button {
                     controller.skipCurrentSegment()
                 } label: {
                     HStack(spacing: 8) {
                         Label(label, systemImage: "forward.end.fill")
-                        if let key = HotkeyStore.shared.binding(for: .skipSegment)?.display {
-                            Text(key)
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 1)
-                                .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(.white.opacity(0.4)))
-                                .foregroundStyle(.white.opacity(0.8))
+                        if let binding = HotkeyStore.shared.binding(for: .skipSegment) {
+                            KeyBadge(binding: binding).foregroundStyle(.white.opacity(0.8))
                         }
                     }
-                        .font(.headline)
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 10)
+                        .scaledFont(.headline)
+                        .padding(.horizontal, 18 * scale)
+                        .padding(.vertical, 10 * scale)
                         .background(.ultraThinMaterial, in: Capsule())
                         .overlay(Capsule().strokeBorder(.white.opacity(0.25)))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PlayerButtonStyle(cornerRadius: 40, inset: 0))
                 .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
         .padding(.trailing, 36)
-        .padding(.bottom, controller.controlsVisible ? 150 : 48)
+        .padding(.bottom, controller.controlsVisible ? 150 * scale : 48)
         .animation(.easeOut(duration: 0.2), value: controller.controlsVisible)
         .animation(.easeOut(duration: 0.25), value: controller.showsUpNext)
         .animation(.easeOut(duration: 0.25), value: skipGrace || controller.controlsVisible)
@@ -175,7 +175,8 @@ struct PlaybackClock: View {
         Text(player.duration > 0
              ? "\(TimeFormat.string(controller.scrubPreview ?? player.timePos)) / \(TimeFormat.string(player.duration))"
              : "Loading…")
-            .font(.callout.monospacedDigit())
+            .scaledFont(.callout)
+            .monospacedDigit()
             .foregroundStyle(.white.opacity(0.75))
             .fixedSize()
     }
@@ -184,6 +185,7 @@ struct PlaybackClock: View {
 /// "↩ Back to 34:12" after a big jump, bottom-left above the controls, for 8 seconds.
 struct JumpBackPill: View {
     let controller: PlaybackController
+    @Environment(\.interfaceScale) private var scale
 
     var body: some View {
         VStack {
@@ -194,32 +196,27 @@ struct JumpBackPill: View {
                         Button {
                             controller.returnFromJump()
                         } label: {
-                            HStack(spacing: 8) {
+                            HStack(spacing: 8 * scale) {
                                 Image(systemName: position < 1 ? "backward.end.fill" : "arrow.uturn.backward")
                                 Text(position < 1 ? "Start from Beginning" : "Back to \(TimeFormat.string(position))")
-                                if let key = HotkeyStore.shared.binding(for: .undoJump)?.display {
-                                    Text(key)
-                                        .font(.caption.weight(.semibold))
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 1)
-                                        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(.white.opacity(0.4)))
-                                        .foregroundStyle(.white.opacity(0.8))
+                                if let binding = HotkeyStore.shared.binding(for: .undoJump) {
+                                    KeyBadge(binding: binding).foregroundStyle(.white.opacity(0.8))
                                 }
                             }
-                            .font(.headline)
+                            .scaledFont(.headline)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(PlayerButtonStyle(cornerRadius: 40, inset: 0))
 
                         Button { controller.dismissJumpBack() } label: {
                             Image(systemName: "xmark")
-                                .font(.caption.weight(.bold))
+                                .scaledFont(.caption, weight: .bold)
                                 .foregroundStyle(.white.opacity(0.6))
                         }
                         .buttonStyle(.plain)
                         .help("Dismiss")
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 16 * scale)
+                    .padding(.vertical, 10 * scale)
                     .background(.ultraThinMaterial, in: Capsule())
                     .overlay(Capsule().strokeBorder(.white.opacity(0.25)))
                     .foregroundStyle(.white)
@@ -229,7 +226,7 @@ struct JumpBackPill: View {
             }
         }
         .padding(.leading, 36)
-        .padding(.bottom, controller.controlsVisible ? 150 : 48)
+        .padding(.bottom, controller.controlsVisible ? 150 * scale : 48)
         .animation(.easeOut(duration: 0.2), value: controller.controlsVisible)
     }
 }
@@ -237,31 +234,41 @@ struct JumpBackPill: View {
 struct UpNextCard: View {
     let controller: PlaybackController
     let next: BaseItemDto
+    @Environment(\.interfaceScale) private var scale
 
     var body: some View {
         HStack(spacing: 14) {
             Artwork(url: controller.client.landscapeURL(for: next, maxWidth: 400), aspectRatio: 16.0 / 9.0, maxPixelSize: 400)
-                .frame(width: 140)
+                .frame(width: 140 * scale)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             VStack(alignment: .leading, spacing: 4) {
                 Text(Preferences.shared.autoplayNext && controller.secondsRemaining <= Preferences.shared.upNextCountdown
                      ? "Next episode in \(controller.secondsRemaining)s" : "Up Next")
-                    .font(.caption.weight(.semibold))
+                    .scaledFont(.caption, weight: .semibold)
                     .foregroundStyle(.secondary)
-                Text([next.episodeLabel, next.name].compactMap { $0 }.joined(separator: " · "))
-                    .font(.headline)
-                    .lineLimit(2)
+                // Long titles scroll sideways instead of changing the card's size.
+                MarqueeText(text: [next.episodeLabel, next.name].compactMap { $0 }.joined(separator: " · "), isActive: true)
+                    .scaledFont(.headline)
                 HStack {
-                    Button("Play Now") { controller.playNext() }
-                        .buttonStyle(.borderedProminent)
+                    Button {
+                        controller.playNext()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text("Play Now")
+                            if let binding = HotkeyStore.shared.binding(for: controller.canSkipSegment ? .playNow : .skipSegment) {
+                                KeyBadge(binding: binding).opacity(0.9)
+                            }
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
                     Button("Hide") { controller.dismissUpNext() }
                         .buttonStyle(.bordered)
                 }
-                .controlSize(.small)
+                .scaledControlSize(.small)
             }
         }
-        .padding(12)
-        .frame(width: 400, alignment: .leading)
+        .padding(12 * scale)
+        .frame(width: 400 * scale)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(.white.opacity(0.15)))
     }
@@ -269,6 +276,7 @@ struct UpNextCard: View {
 
 struct PlayerOverlay: View {
     let controller: PlaybackController
+    @Environment(\.interfaceScale) private var scale
 
     private var player: MPVPlayer { controller.player }
     /// Settings → Playback (5, 10, 15 or 30: each has a matching SF Symbol).
@@ -287,10 +295,10 @@ struct PlayerOverlay: View {
         ZStack {
             VStack(spacing: 2) {
                 Text(controller.title)
-                    .font(.headline)
+                    .scaledFont(.headline)
                 if let subtitle = controller.subtitle {
                     Text(subtitle)
-                        .font(.subheadline)
+                        .scaledFont(.subheadline)
                         .foregroundStyle(.white.opacity(0.7))
                 }
             }
@@ -300,12 +308,12 @@ struct PlayerOverlay: View {
             HStack {
                 Button { controller.close() } label: {
                     Label("Back", systemImage: "chevron.backward")
-                        .font(.callout.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
+                        .scaledFont(.callout, weight: .semibold)
+                        .padding(.horizontal, 12 * scale)
+                        .padding(.vertical, 6 * scale)
                         .background(.ultraThinMaterial, in: Capsule())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PlayerButtonStyle(cornerRadius: 40, inset: 0))
                 .help("Back to library" + HotkeyStore.shared.hint(.exitPlayer))
                 Spacer()
             }
@@ -314,7 +322,7 @@ struct PlayerOverlay: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 10)
-        .padding(.bottom, 44)
+        .padding(.bottom, 44 * scale)
         .background(
             LinearGradient(colors: [.black.opacity(0.65), .clear], startPoint: .top, endPoint: .bottom)
                 .allowsHitTesting(false)
@@ -323,7 +331,7 @@ struct PlayerOverlay: View {
     }
 
     private var bottomPanel: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 8 * scale) {
             SeekBar(
                 player: player,
                 externalPreview: controller.scrubPreview,
@@ -332,7 +340,7 @@ struct PlayerOverlay: View {
                 onJump: { origin, target in controller.offerJumpBack(from: origin, to: target) }
             )
 
-            HStack(spacing: 16) {
+            HStack(spacing: 4 * scale) {
                 if controller.previousEpisode != nil {
                     Button { controller.playPrevious() } label: { Image(systemName: "backward.end.fill") }
                         .help("Previous episode" + HotkeyStore.shared.hint(.previousEpisode))
@@ -346,8 +354,8 @@ struct PlayerOverlay: View {
 
                 Button { player.togglePause() } label: {
                     Image(systemName: player.isPaused ? "play.fill" : "pause.fill")
-                        .font(.title)
-                        .frame(width: 30)
+                        .scaledFont(.title)
+                        .frame(width: 30 * scale)
                 }
                 .help((player.isPaused ? "Play" : "Pause") + HotkeyStore.shared.hint(.playPause))
 
@@ -363,10 +371,12 @@ struct PlayerOverlay: View {
                 }
 
                 PlaybackClock(controller: controller)
+                    .padding(.leading, 6 * scale)
 
                 if controller.isTranscoding {
                     Text("TRANSCODING")
-                        .font(.caption2.weight(.bold))
+                        .scaledFont(.caption2, weight: .bold)
+                        .padding(.leading, 12 * scale)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(.orange.opacity(0.85), in: Capsule())
@@ -375,7 +385,7 @@ struct PlayerOverlay: View {
 
                 Spacer(minLength: 8)
 
-                if !controller.chapters.isEmpty { chaptersMenu }
+                if controller.hasChapters { chaptersMenu }
                 audioMenu
                 subtitlesMenu
                 settingsMenu
@@ -385,17 +395,17 @@ struct PlayerOverlay: View {
                 }
                 .help("Playback stats" + HotkeyStore.shared.hint(.toggleStats))
 
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     Button { player.setMuted(!player.isMuted) } label: {
-                        Image(systemName: volumeIcon).frame(width: 22)
+                        Image(systemName: volumeIcon).frame(width: 22 * scale)
                     }
                     .help("Mute" + HotkeyStore.shared.hint(.toggleMute))
                     Slider(
                         value: Binding(get: { min(player.volume, 100) }, set: { player.setVolume($0) }),
                         in: 0...100
                     )
-                    .controlSize(.small)
-                    .frame(width: 80)
+                    .scaledControlSize(.small)
+                    .frame(width: 80 * scale)
                 }
 
                 Button { controller.toggleFullScreen() } label: {
@@ -405,11 +415,11 @@ struct PlayerOverlay: View {
                 }
                 .help("Full Screen" + HotkeyStore.shared.hint(.toggleFullScreen))
             }
-            .font(.title3)
-            .buttonStyle(.plain)
+            .scaledFont(.title3)
+            .buttonStyle(PlayerButtonStyle())
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+        .padding(.horizontal, 14 * scale)
+        .padding(.vertical, 8 * scale)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(.white.opacity(0.1)))
         .contentShape(Rectangle())
@@ -417,7 +427,7 @@ struct PlayerOverlay: View {
         .onHover { controller.setHoveringControls($0) }
         .padding(.horizontal, 24)
         .padding(.bottom, 20)
-        .frame(maxWidth: 1200)
+        .frame(maxWidth: 1200 * scale)
     }
 
     private var volumeIcon: String {
@@ -441,7 +451,7 @@ struct PlayerOverlay: View {
         } label: {
             Image(systemName: "waveform")
         }
-        .menuStyle(.borderlessButton)
+        .menuStyle(.button)  // a button-style menu, so the icon follows the player's text size and hover style
         .menuIndicator(.hidden)
         .fixedSize()
         .disabled(controller.audioStreams.isEmpty)
@@ -478,7 +488,7 @@ struct PlayerOverlay: View {
         } label: {
             Image(systemName: controller.selectedSubtitleIndex >= 0 ? "captions.bubble.fill" : "captions.bubble")
         }
-        .menuStyle(.borderlessButton)
+        .menuStyle(.button)  // a button-style menu, so the icon follows the player's text size and hover style
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Subtitles" + HotkeyStore.shared.hint(.cycleSubtitles))
@@ -521,7 +531,7 @@ struct PlayerOverlay: View {
         } label: {
             Image(systemName: "gearshape")
         }
-        .menuStyle(.borderlessButton)
+        .menuStyle(.button)  // a button-style menu, so the icon follows the player's text size and hover style
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Quality, speed, aspect ratio")
@@ -529,15 +539,15 @@ struct PlayerOverlay: View {
 
     private var chaptersMenu: some View {
         Menu {
-            ForEach(Array(controller.chapters.enumerated()), id: \.offset) { index, chapter in
-                Button("\(chapter.name ?? "Chapter \(index + 1)")  —  \(TimeFormat.string(chapter.start))") {
-                    controller.jump(to: chapter.start)
+            ForEach(Array(controller.jumpPoints.enumerated()), id: \.offset) { _, point in
+                Button("\(point.name)  —  \(TimeFormat.string(point.start))") {
+                    controller.jump(to: point.start)
                 }
             }
         } label: {
             Image(systemName: "list.bullet")
         }
-        .menuStyle(.borderlessButton)
+        .menuStyle(.button)  // a button-style menu, so the icon follows the player's text size and hover style
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Chapters")
@@ -554,6 +564,7 @@ struct SeekBar: View {
     var chapters: [ChapterInfo] = []
     var onJump: ((Double, Double) -> Void)? = nil
 
+    @Environment(\.interfaceScale) private var scale
     @State private var hoverX: CGFloat?
     @State private var dragTime: Double?
     @State private var dragOrigin: Double?
@@ -576,7 +587,7 @@ struct SeekBar: View {
             let shown = dragTime ?? externalPreview ?? player.timePos
             let active = isReady && (hoverX != nil || dragTime != nil || externalPreview != nil)
             let hoverTime: Double? = isReady ? (dragTime ?? hoverX.map { time(atX: $0, width: width) }) : nil
-            let knob: CGFloat = active ? 14 : 0
+            let knob: CGFloat = active ? 14 * scale : 0
 
             ZStack(alignment: .leading) {
                 // The track and everything on it share one rounded shape, so intro/credit markers and
@@ -585,15 +596,22 @@ struct SeekBar: View {
                     Capsule().fill(.white.opacity(0.18))
                     if isReady {
                         Rectangle().fill(.white.opacity(0.22)).frame(width: width * fraction(player.cachedUntil))
+                        Capsule().fill(.tint).frame(width: width * fraction(shown))
+                        // Intro and credits marks, drawn after the played part so they stay visible once watched. The
+                        // part you've watched is a solid gold instead of see-through yellow, which would turn green on blue.
                         ForEach(segments.filter { $0.skipLabel != nil }) { segment in
                             let start = fraction(segment.start)
                             let end = fraction(segment.end)
+                            let playedEnd = min(max(fraction(shown), start), end)
                             Rectangle()
-                                .fill(.yellow.opacity(0.55))
-                                .frame(width: max(2, width * (end - start)))
-                                .offset(x: min(width * start, width - 2))
+                                .fill(.yellow.opacity(0.6))
+                                .frame(width: max(0, width * (end - playedEnd)))
+                                .offset(x: width * playedEnd)
+                            Rectangle()
+                                .fill(Color(red: 0.74, green: 0.58, blue: 0.08))
+                                .frame(width: max(0, width * (playedEnd - start)))
+                                .offset(x: width * start)
                         }
-                        Capsule().fill(.tint).frame(width: width * fraction(shown))
                         ForEach(Array(chapters.dropFirst().enumerated()), id: \.offset) { _, chapter in
                             Rectangle()
                                 .fill(.black.opacity(0.6))
@@ -614,17 +632,18 @@ struct SeekBar: View {
                         .shadow(radius: 2)
                 }
             }
-            .frame(width: width, height: active ? 8 : 5, alignment: .leading)
+            .frame(width: width, height: (active ? 8 : 5) * scale, alignment: .leading)
             .frame(maxHeight: .infinity)
             .overlay(alignment: .topLeading) {
                 if let hoverTime {
                     Text(TimeFormat.string(hoverTime))
-                        .font(.caption.monospacedDigit().weight(.semibold))
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
+                        .scaledFont(.caption, weight: .semibold)
+                        .monospacedDigit()
+                        .padding(.horizontal, 7 * scale)
+                        .padding(.vertical, 3 * scale)
                         .background(.black.opacity(0.8), in: Capsule())
                         .fixedSize()
-                        .offset(x: min(max(width * fraction(hoverTime) - 26, 0), max(width - 52, 0)), y: -22)
+                        .offset(x: min(max(width * fraction(hoverTime) - 26, 0), max(width - 52, 0)), y: -22 * scale)
                         .allowsHitTesting(false)
                 }
             }
@@ -659,7 +678,7 @@ struct SeekBar: View {
             )
             .animation(.easeOut(duration: 0.12), value: active)
         }
-        .frame(height: 24)
+        .frame(height: 24 * scale)
     }
 }
 
@@ -676,5 +695,65 @@ enum TimeFormat {
     static func runtime(_ seconds: Double) -> String {
         let minutes = Int((seconds / 60).rounded())
         return minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m" : "\(minutes)m"
+    }
+}
+
+/// A clearly visible hover state for player buttons: a light wash over the button while the pointer is on it and a
+/// stronger one while pressed, so it's obvious which button is under the cursor even on a dimmed screen. The padding
+/// is part of the button (so the whole highlighted area is clickable); the rows around it use tighter spacing to
+/// keep the icons where they were.
+struct PlayerHover: ViewModifier {
+    var cornerRadius: CGFloat = 8
+    var inset: CGFloat = 6
+    var pressed = false
+
+    @State private var hovering = false
+    @Environment(\.interfaceScale) private var scale
+
+    func body(content: Content) -> some View {
+        content
+            .padding(inset * scale)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius * scale, style: .continuous)
+                    .fill(.white.opacity(pressed ? 0.3 : (hovering ? 0.22 : 0)))
+                    .allowsHitTesting(false)
+            )
+            .contentShape(Rectangle())
+            .onHover { hovering = $0 }
+            .animation(.easeOut(duration: 0.1), value: hovering)
+    }
+}
+
+struct PlayerButtonStyle: ButtonStyle {
+    var cornerRadius: CGFloat = 8
+    var inset: CGFloat = 6
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.modifier(PlayerHover(cornerRadius: cornerRadius, inset: inset, pressed: configuration.isPressed))
+    }
+}
+
+/// A key hint like "⇧↩" in a small outlined box. The return key is drawn with an SF Symbol, because the ↩ text
+/// character sits too high next to the label text.
+struct KeyBadge: View {
+    let binding: KeyBinding
+
+    var body: some View {
+        HStack(spacing: 2) {
+            let flags = binding.modifierFlags
+            let modifiers = (flags.contains(.control) ? "⌃" : "") + (flags.contains(.option) ? "⌥" : "")
+                + (flags.contains(.shift) ? "⇧" : "") + (flags.contains(.command) ? "⌘" : "")
+            if !modifiers.isEmpty { Text(modifiers) }
+            if binding.key == "Return" {
+                Image(systemName: "return")
+            } else {
+                Text(binding.key)
+            }
+        }
+        .scaledFont(.caption, weight: .semibold)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 1)
+        .fixedSize()
+        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(.white.opacity(0.4)))
     }
 }

@@ -32,6 +32,7 @@ Luminary is free, open source, and not affiliated with the Jellyfin project.
 - Right-click menus: mark watched, favorite, remove from Continue Watching, go to series or season
 - mpv player: direct play first, with transcoding at the quality you pick when needed
 - Audio and subtitle tracks with Jellyfin's labels and defaults, subtitle timing and size, ASS styling
+- Remembers your audio and subtitle choices for each series, so the next episode starts the way you left it
 - Skip Intro / Credits (Jellyfin 10.10+ with a segment plugin such as Intro Skipper), chapters, Up Next autoplay
 - Media keys and AirPods controls, playback stats panel, trackpad scrubbing
 - Optional glass window background (View → Glass Background, ⌃⌘G)
@@ -91,15 +92,15 @@ All shortcuts are listed, and can be rebound, in **Luminary → Settings… (⌘
 
 | Player | | Library | |
 |---|---|---|---|
-| Space · click | Play / pause | ⌘[ · mouse back button | Back |
+| Space · click | Play / pause | ⌘[ · Esc · mouse back button | Back |
 | ← / → (⇧ for 30 s) | Seek 5 s (lengths adjustable in Settings) | ⌘1 / ⌘2 / ⌘3 | Home / Next Up / Favorites |
-| Return | Skip intro / credits, or play next | ⌘4 – ⌘9 | Libraries in sidebar order |
-| Page Up / Page Down | Previous / next chapter | ⌘F | Search |
+| Return · ⇧Return | Skip intro / credits (or play next) · play next now | ⌘4 – ⌘9 | Libraries in sidebar order |
+| [ / ] | Previous / next chapter | ⌘F | Search |
 | P / N | Previous / next episode | ⌘R | Refresh |
 | ↑ / ↓ · M | Volume · mute | ⌃⌘S | Show / hide sidebar |
 | A / S | Next audio / subtitle track | ⌃⌘G | Glass background |
 | Z / X | Subtitles earlier / later | ⌘= / ⌘- / ⌘0 | Bigger / smaller / actual size |
-| [ / ] / \\ | Slower / faster / normal speed | | |
+| - / = / \\ | Slower / faster / normal speed | | |
 | F · double-click | Full screen | | |
 | Esc | Exit full screen, then back to library | | |
 | I | Playback stats | | |

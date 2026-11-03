@@ -42,6 +42,7 @@ struct LibraryShellView: View {
 
     @State private var loadError: String?
     @State private var mouseMonitor: Any?
+    @State private var escMonitor: Any?
     @State private var chrome = WindowChromeMetrics()
     @State private var isHoveringAccount = false
     @State private var isHoveringSettings = false
@@ -125,10 +126,12 @@ struct LibraryShellView: View {
             await loadLibraries()
         }
         .task { await NetworkLocation.shared.update(client: session.client) } // home vs away quality
-        .onAppear { installMouseBackButton() }
+        .onAppear { installMouseBackButton(); installEscapeBack() }
         .onDisappear {
             if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
             mouseMonitor = nil
+            if let escMonitor { NSEvent.removeMonitor(escMonitor) }
+            escMonitor = nil
         }
     }
 
@@ -248,6 +251,25 @@ struct LibraryShellView: View {
         let nav = navigator
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .otherMouseDown) { event in
             guard event.buttonNumber == 3 else { return event }
+            let handled = MainActor.assumeIsolated { () -> Bool in
+                guard nav.canGoBack else { return false }
+                nav.goBack()
+                return true
+            }
+            return handled ? nil : event
+        }
+    }
+
+    /// Esc goes back, like the Back button: from a series to wherever you came from. Only in the library window,
+    /// and never while typing (the search field's own Esc clears it) or in a popover / sheet / the player.
+    private func installEscapeBack() {
+        guard escMonitor == nil else { return }
+        let nav = navigator
+        escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard event.keyCode == 53, !event.isARepeat,
+                  event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty,
+                  let window = event.window, window === WindowChromeReader.ReaderView.libraryWindow,
+                  window.attachedSheet == nil, !(window.firstResponder is NSText) else { return event }
             let handled = MainActor.assumeIsolated { () -> Bool in
                 guard nav.canGoBack else { return false }
                 nav.goBack()
@@ -619,6 +641,9 @@ struct WindowChromeReader: NSViewRepresentable {
         static let lightSpacing: CGFloat = 23
         private static let lightKinds: [NSWindow.ButtonType] = [.closeButton, .miniaturizeButton, .zoomButton]
 
+        /// The library window (never the player's), so Esc-to-go-back can ignore other windows.
+        nonisolated(unsafe) static weak var libraryWindow: NSWindow?
+
         weak var metrics: WindowChromeMetrics?
         private var observers: [NSObjectProtocol] = []
         private var titleObservation: NSKeyValueObservation?
@@ -634,6 +659,7 @@ struct WindowChromeReader: NSViewRepresentable {
             if let doubleClickMonitor { NSEvent.removeMonitor(doubleClickMonitor) }
             doubleClickMonitor = nil
             guard let window else { return }
+            Self.libraryWindow = window
             installDoubleClickToZoom(on: window)
 
             window.isMovableByWindowBackground = true

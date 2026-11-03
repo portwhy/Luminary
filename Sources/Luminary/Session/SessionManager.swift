@@ -104,6 +104,7 @@ final class SessionManager {
         // Don't leave the account's posters and server replies cached on this Mac.
         await ImagePipeline.shared.clearAll()
         URLCache.shared.removeAllCachedResponses()
+        SeriesTrackMemory.clear()
         state = .signedOut
     }
 }

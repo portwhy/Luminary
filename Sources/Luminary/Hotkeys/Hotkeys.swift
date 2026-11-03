@@ -37,6 +37,9 @@ struct KeyBinding: Codable, Hashable {
     }
 
     /// "⇧→", "⌘[", "Space"
+    /// Short form for small on-screen badges: "⇧↩" instead of "⇧Return".
+    var compactDisplay: String { display.replacingOccurrences(of: "Return", with: "↩") }
+
     var display: String {
         var symbols = ""
         if modifierFlags.contains(.control) { symbols += "⌃" }
@@ -105,7 +108,7 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
     case playPause, toggleFullScreen, exitPlayer, toggleStats, volumeUp, volumeDown, toggleMute
     case seekBack, seekForward, seekBackLong, seekForwardLong, skipSegment, previousChapter, nextChapter, undoJump
     case cycleAudio, cycleSubtitles, subtitlesEarlier, subtitlesLater, speedDown, speedUp, speedReset
-    case previousEpisode, nextEpisode
+    case previousEpisode, nextEpisode, playNow
     // App
     case back, goHome, goNextUp, goFavorites, search, refresh
     case zoomIn, zoomOut, zoomReset
@@ -138,6 +141,7 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
         case .speedReset: "Normal Speed"
         case .previousEpisode: "Previous Episode"
         case .nextEpisode: "Next Episode"
+        case .playNow: "Play Next Now (when Up Next shows)"
         case .back: "Back"
         case .goHome: "Home"
         case .goNextUp: "Next Up"
@@ -155,7 +159,7 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
         case .playPause, .toggleFullScreen, .exitPlayer, .toggleStats, .volumeUp, .volumeDown, .toggleMute: .playback
         case .seekBack, .seekForward, .seekBackLong, .seekForwardLong, .skipSegment, .previousChapter, .nextChapter, .undoJump: .seeking
         case .cycleAudio, .cycleSubtitles, .subtitlesEarlier, .subtitlesLater, .speedDown, .speedUp, .speedReset: .tracks
-        case .previousEpisode, .nextEpisode: .episodes
+        case .previousEpisode, .nextEpisode, .playNow: .episodes
         case .back, .goHome, .goNextUp, .goFavorites, .search, .refresh: .navigation
         case .zoomIn, .zoomOut, .zoomReset: .interface
         }
@@ -177,18 +181,19 @@ enum HotkeyAction: String, CaseIterable, Identifiable {
         case .seekBackLong: KeyBinding(keyCode: 123, modifiers: .shift, key: "←")
         case .seekForwardLong: KeyBinding(keyCode: 124, modifiers: .shift, key: "→")
         case .skipSegment: KeyBinding(keyCode: 36, key: "Return")
-        case .previousChapter: KeyBinding(keyCode: 116, key: "Page Up")
-        case .nextChapter: KeyBinding(keyCode: 121, key: "Page Down")
+        case .previousChapter: KeyBinding(keyCode: 33, key: "[")
+        case .nextChapter: KeyBinding(keyCode: 30, key: "]")
         case .undoJump: KeyBinding(keyCode: 6, modifiers: .command, key: "Z")
         case .cycleAudio: KeyBinding(keyCode: 0, key: "A")
         case .cycleSubtitles: KeyBinding(keyCode: 1, key: "S")
         case .subtitlesEarlier: KeyBinding(keyCode: 6, key: "Z")
         case .subtitlesLater: KeyBinding(keyCode: 7, key: "X")
-        case .speedDown: KeyBinding(keyCode: 33, key: "[")
-        case .speedUp: KeyBinding(keyCode: 30, key: "]")
+        case .speedDown: KeyBinding(keyCode: 27, key: "-")
+        case .speedUp: KeyBinding(keyCode: 24, key: "=")
         case .speedReset: KeyBinding(keyCode: 42, key: "\\")
         case .previousEpisode: KeyBinding(keyCode: 35, key: "P")
         case .nextEpisode: KeyBinding(keyCode: 45, key: "N")
+        case .playNow: KeyBinding(keyCode: 36, modifiers: .shift, key: "Return")
         case .back: KeyBinding(keyCode: 33, modifiers: .command, key: "[")
         case .goHome: KeyBinding(keyCode: 18, modifiers: .command, key: "1")
         case .goNextUp: KeyBinding(keyCode: 19, modifiers: .command, key: "2")
