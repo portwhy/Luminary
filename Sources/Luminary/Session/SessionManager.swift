@@ -88,6 +88,9 @@ final class SessionManager {
             try? await session.client.logout()
         }
         try? store.clear()
+        // Don't leave the account's posters and server replies cached on this Mac.
+        await ImagePipeline.shared.clearAll()
+        URLCache.shared.removeAllCachedResponses()
         state = .signedOut
     }
 }

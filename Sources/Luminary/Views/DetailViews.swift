@@ -442,7 +442,9 @@ struct TrailerButton: View {
     @Environment(\.openURL) private var openURL
 
     var body: some View {
-        if let link = item.remoteTrailers?.first?.url, let url = URL(string: link) {
+        // Web pages only: the address comes from the server, so never open other kinds of links (files, other apps).
+        if let link = item.remoteTrailers?.first?.url, let url = URL(string: link),
+           let scheme = url.scheme?.lowercased(), scheme == "https" || scheme == "http" {
             Button { openURL(url) } label: {
                 Label("Trailer", systemImage: "film")
             }

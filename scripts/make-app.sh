@@ -8,8 +8,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Bump both for every release. BUILD must always go up: Sparkle compares it to decide what's newer.
-VERSION="0.2.2"
-BUILD="4"
+VERSION="0.2.3"
+BUILD="5"
 BUNDLE_ID="app.luminary.Luminary"
 APP="dist/Luminary.app"
 
@@ -71,12 +71,26 @@ if security find-certificate -c "Luminary Dev Signing" >/dev/null 2>&1; then
 else
   IDENTITY="-"
 fi
+# Hardened runtime: other programs can't inject code into Luminary (and borrow its Keychain access) or attach to it.
+# Exceptions it needs: LuaJIT inside mpv writes machine code at run time (mpv's Lua add-ons are switched off, these two
+# keep playback from ever being killed if one runs anyway), and Sparkle.framework is signed with our own certificate,
+# which has no Apple team ID for library validation to match.
+ENTITLEMENTS="$(mktemp -d)/Luminary.entitlements"
+cat > "$ENTITLEMENTS" <<ENT
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>com.apple.security.cs.allow-jit</key><true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key><true/>
+  <key>com.apple.security.cs.disable-library-validation</key><true/>
+</dict></plist>
+ENT
 # Inside out: Sparkle's helpers, then the framework, then the app.
 SPARKLE="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
 for part in "$SPARKLE"/XPCServices/*.xpc "$SPARKLE/Autoupdate" "$SPARKLE/Updater.app" "$APP/Contents/Frameworks/Sparkle.framework"; do
-  codesign --force --sign "$IDENTITY" "$part"
+  codesign --force --options runtime --preserve-metadata=entitlements --sign "$IDENTITY" "$part"
 done
-codesign --force --sign "$IDENTITY" --identifier "$BUNDLE_ID" "$APP"
+codesign --force --options runtime --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" --identifier "$BUNDLE_ID" "$APP"
 codesign --verify --strict "$APP" && echo "signed with: $IDENTITY"
 
 if [ "${1:-}" = "--package" ]; then

@@ -42,6 +42,14 @@ actor ImagePipeline {
         memory.object(forKey: url as NSURL)
     }
 
+    /// Forgets every cached image, in memory and on disk (signing out).
+    func clearAll() {
+        memory.removeAllObjects()
+        inFlight.values.forEach { $0.cancel() }
+        inFlight = [:]
+        session.configuration.urlCache?.removeAllCachedResponses()
+    }
+
     func image(for url: URL, maxPixelSize: Int) async -> DecodedImage? {
         if let hit = memory.object(forKey: url as NSURL) { return hit }
         if let existing = inFlight[url] { return await existing.value }

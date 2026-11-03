@@ -89,7 +89,17 @@ final class JellyfinKitTests: XCTestCase {
 
     func testCandidatesForPublicHostname() throws {
         let urls = try JellyfinClient.candidateURLs(for: "media.example.com").map(\.absoluteString)
-        XCTAssertEqual(urls, ["https://media.example.com", "http://media.example.com:8096", "http://media.example.com"])
+        XCTAssertEqual(urls, ["https://media.example.com"]) // never falls back to plain http on its own
+    }
+
+    func testExplicitHTTPIsKept() throws {
+        let urls = try JellyfinClient.candidateURLs(for: "http://media.example.com:8096").map(\.absoluteString)
+        XCTAssertEqual(urls, ["http://media.example.com:8096"])
+    }
+
+    func testPublicIPIsHTTPSOnly() throws {
+        let urls = try JellyfinClient.candidateURLs(for: "203.0.113.7:8096").map(\.absoluteString)
+        XCTAssertEqual(urls, ["https://203.0.113.7:8096"])
     }
 
     func testExplicitSchemeKeepsBasePath() throws {

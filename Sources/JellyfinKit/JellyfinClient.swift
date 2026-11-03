@@ -70,29 +70,35 @@ public final class JellyfinClient: Sendable {
             return components.url
         }
 
-        let local = looksLocal(host)
+        // Plain http only on the home network. A public address is https only: falling back to http there would
+        // let anyone on the same Wi-Fi block https and read the password. Typing http:// still works, on purpose.
         let ordered: [URL?]
-        if probe.port != nil {
-            ordered = local ? [make("http"), make("https")] : [make("https"), make("http")]
-        } else if local {
+        if !looksLocal(host) {
+            ordered = [make("https")]
+        } else if probe.port != nil {
+            ordered = [make("http"), make("https")]
+        } else {
             // LAN box: Jellyfin's default port first.
             ordered = [make("http", port: 8096), make("http"), make("https")]
-        } else {
-            // Public hostname: most likely behind a TLS reverse proxy.
-            ordered = [make("https"), make("http", port: 8096), make("http")]
         }
         let urls = ordered.compactMap { $0 }
         guard !urls.isEmpty else { throw JellyfinError.invalidServerURL(input) }
         return urls
     }
 
+    /// Home-network names and private IPv4 addresses (including Tailscale's 100.64.0.0/10, which is encrypted anyway).
     static func looksLocal(_ host: String) -> Bool {
         let host = host.lowercased()
         if host == "localhost" || host.hasSuffix(".local") || host.hasSuffix(".lan") || !host.contains(".") {
             return true
         }
-        let octets = host.split(separator: ".")
-        return octets.count == 4 && octets.allSatisfy { Int($0).map { (0...255).contains($0) } ?? false }
+        let octets = host.split(separator: ".").compactMap { Int($0) }
+        guard octets.count == 4, octets.allSatisfy({ (0...255).contains($0) }) else { return false }
+        switch (octets[0], octets[1]) {
+        case (10, _), (127, _), (192, 168), (169, 254): return true
+        case (172, 16...31), (100, 64...127): return true
+        default: return false
+        }
     }
 
     /// Probes each candidate's `/System/Info/Public` and returns an unauthenticated client for the first
@@ -122,7 +128,12 @@ public final class JellyfinClient: Sendable {
                 lastError = error
             }
         }
-        throw JellyfinError.serverUnreachable(input, underlying: lastError.localizedDescription)
+        var reason = lastError.localizedDescription
+        if !input.contains("://"), let host = URLComponents(string: "http://" + input.trimmingCharacters(in: .whitespaces))?.host,
+           !looksLocal(host) {
+            reason += " Away from your home network Luminary only connects with https. If your server has no https, type http:// in front of the address (your password is then sent unencrypted)."
+        }
+        throw JellyfinError.serverUnreachable(input, underlying: reason)
     }
 
     // MARK: - System & auth
@@ -331,10 +342,22 @@ public final class JellyfinClient: Sendable {
             string = base + (path.hasPrefix("/") ? path : "/" + path)
         }
         let lower = string.lowercased()
-        if let token = credentials?.accessToken, !lower.contains("api_key=") && !lower.contains("apikey=") {
+        // Only our own server gets the token: an absolute URL can point anywhere (e.g. a subtitle plugin's host).
+        if let token = credentials?.accessToken, !lower.contains("api_key=") && !lower.contains("apikey="),
+           isOwnServer(URL(string: string)) {
             string += (string.contains("?") ? "&" : "?") + "api_key=" + token
         }
         return URL(string: string)
+    }
+
+    private func isOwnServer(_ url: URL?) -> Bool {
+        guard let url else { return false }
+        return url.host?.lowercased() == serverURL.host?.lowercased()
+            && url.port ?? Self.defaultPort(url) == serverURL.port ?? Self.defaultPort(serverURL)
+    }
+
+    private static func defaultPort(_ url: URL) -> Int {
+        url.scheme?.lowercased() == "https" ? 443 : 80
     }
 
     /// Headers for players that can send them (mpv `http-header-fields`). Preferable to `api_key` in the URL

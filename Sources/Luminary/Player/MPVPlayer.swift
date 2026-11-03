@@ -88,6 +88,16 @@ final class MPVPlayer {
             ("input-vo-keyboard", "no"),
             ("osc", "no"),
             ("ytdl", "no"),
+            // mpv's built-in Lua add-ons (stats page, console, menus…): Luminary draws its own UI, so none of them run.
+            // Less code in the player, and LuaJIT never has to generate code under the hardened runtime.
+            ("load-scripts", "no"),
+            ("load-stats-overlay", "no"),
+            ("load-console", "no"),
+            ("load-auto-profiles", "no"),
+            ("load-select", "no"),
+            ("load-commands", "no"),
+            ("load-positioning", "no"),
+            ("load-context-menu", "no"),
             ("audio-client-name", "Luminary"),
             ("volume", String(Int(volume))),
             ("volume-max", String(preferences.volumeLimit)),
