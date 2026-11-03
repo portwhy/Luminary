@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import IOKit.pwr_mgt
 import Observation
 
 /// SwiftUI-facing player state. Everything here is main-actor; mpv events hop over from the event thread.
@@ -31,6 +32,7 @@ final class MPVPlayer {
 
     @ObservationIgnored private var core: MPVCore?
     @ObservationIgnored private var pausedForCache = false
+    @ObservationIgnored private var sleepAssertion: IOPMAssertionID = 0
     @ObservationIgnored private var pendingLoad: (url: URL, start: Double)?
     @ObservationIgnored private static let volumeKey = "app.luminary.player.volume"
 
@@ -141,6 +143,7 @@ final class MPVPlayer {
         }
         isFileLoaded = false
         isBuffering = true
+        updateSleepAssertion()
         print("[Luminary] loading \(MPVCore.redact(url.absoluteString)) from \(Int(startAt))s")
         var args = ["loadfile", url.absoluteString, "replace", "-1"]
         if startAt > 1 {
@@ -152,6 +155,30 @@ final class MPVPlayer {
     func shutdown() {
         core?.shutdown()
         core = nil
+        releaseSleepAssertion()
+    }
+
+    /// Keep the display (and the Mac) awake while a video is playing, like any video player. Paused or stopped
+    /// playback lets the screen sleep normally again. Called on state changes only, never per frame.
+    private func updateSleepAssertion() {
+        if isFileLoaded, !isPaused {
+            guard sleepAssertion == 0 else { return }
+            var id: IOPMAssertionID = 0
+            let result = IOPMAssertionCreateWithName(
+                kIOPMAssertPreventUserIdleDisplaySleep as CFString,
+                IOPMAssertionLevel(kIOPMAssertionLevelOn),
+                "Luminary is playing a video" as CFString,
+                &id)
+            if result == kIOReturnSuccess { sleepAssertion = id }
+        } else {
+            releaseSleepAssertion()
+        }
+    }
+
+    private func releaseSleepAssertion() {
+        guard sleepAssertion != 0 else { return }
+        IOPMAssertionRelease(sleepAssertion)
+        sleepAssertion = 0
     }
 
     // MARK: Transport
@@ -254,9 +281,11 @@ final class MPVPlayer {
             selectedSubtitleID = subtitleTracks.first(where: \.isSelected)?.id
         case .fileLoaded:
             isFileLoaded = true
+            updateSleepAssertion()
             errorMessage = nil
             onFileLoaded?()
         case .endFile(let isError, let message):
+            releaseSleepAssertion()
             if isError {
                 errorMessage = "Playback failed: \(message ?? "unknown error")."
                 isBuffering = false
@@ -275,6 +304,7 @@ final class MPVPlayer {
         case (.pause, .flag(let v)):
             if isPaused != v {
                 isPaused = v
+                updateSleepAssertion()
                 onPauseChanged?(v)
             }
         case (.pausedForCache, .flag(let v)):
